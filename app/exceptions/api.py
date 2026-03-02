@@ -33,3 +33,4 @@ class IncorrectPasswordHTTPException(BaseAppHTTPException):
 class NoAccessTokenHTTPException(BaseAppHTTPException):
     status_code = 401
     detail = "Вы не предоставили токен доступа"
+
