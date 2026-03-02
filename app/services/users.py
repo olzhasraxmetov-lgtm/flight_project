@@ -1,10 +1,13 @@
 from datetime import datetime, timedelta, timezone
 
-from app.services.base import BaseService
-from pwdlib import PasswordHash
-from app.core.config import settings
-from app.schemas.users import UserRequestCreate, UserCreate
 import jwt
+from pwdlib import PasswordHash
+
+from app.core.config import settings
+from app.exceptions.base import EmailNotRegisteredException, IncorrectPasswordException
+from app.schemas.users import UserRequestCreate, UserCreate, UserLoginRequest
+from app.services.base import BaseService
+
 
 class UsersService(BaseService):
     password_hash = PasswordHash.recommended()
@@ -31,3 +34,18 @@ class UsersService(BaseService):
         new_user = await self.db.users.add(new_user_data)
         await self.db.commit()
         return new_user
+
+    async def authenticate_user(self, payload: UserLoginRequest):
+        user = await self.db.users.get_user_with_hashed_password(email=payload.email)
+        if not user:
+            raise EmailNotRegisteredException
+        if not self.verify_password(payload.password, user.hashed_password):
+            raise IncorrectPasswordException
+        access_token = self.create_access_token({"sub": user.username})
+        return access_token
+
+    async def get_user_by_username(self, username: str):
+        return await self.db.users.get_one_or_none(username=username)
+
+    async def get_my_profile(self):
+        return await self.db.users.mapper.map_to_domain_entity()
