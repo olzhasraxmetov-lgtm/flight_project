@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.exceptions.base import ObjectAlreadyExistException
 from app.mappers.base import DataMapper
-
+from loguru import logger
 
 class BaseRepository:
     model = None
@@ -45,14 +45,20 @@ class BaseRepository:
             model = result.scalars().one()
             return self.mapper.map_to_domain_entity(model)
         except IntegrityError as ex:
+            logger.warning("Integrity error", model_name=self.model.__name__, detail=str(ex))
             if isinstance(ex.orig.__cause__, UniqueViolationError):
                 raise ObjectAlreadyExistException from ex
             else:
+                logger.error(f"Unexpected IntegrityError: {ex}")
                 raise ex
 
     async def add_bulk(self, data: Sequence[BaseModel]):
-        add_stmt = insert(self.model).values([item.model_dump() for item in data])
-        await self.session.execute(add_stmt)
+        try:
+            add_stmt = insert(self.model).values(*data).returning(self.model)
+            await self.session.execute(add_stmt)
+        except IntegrityError as ex:
+            logger.warning("Bulk Integrity error", model_name=self.model.__name__)
+            raise ObjectAlreadyExistException from ex
 
     async def edit(self, data: BaseModel, exclude_unset: bool = False, **filter_by) -> None:
         edit_stmt = (
@@ -60,8 +66,13 @@ class BaseRepository:
             .filter_by(**filter_by)
             .values(**data.model_dump(exclude_unset=exclude_unset))
         )
-        await self.session.execute(edit_stmt)
+        result = await self.session.execute(edit_stmt)
+        if result.rowcount == 0:
+            logger.warning("No entity found to edit",model_name=self.model.__name__,filters=filter_by)
+
 
     async def delete(self, **filter_by) -> None:
         delete_stmt = delete(self.model).filter_by(**filter_by)
-        await self.session.execute(delete_stmt)
+        result = await self.session.execute(delete_stmt)
+        if result.rowcount == 0:
+            logger.warning("No entity found to delete",model_name=self.model.__name__,filters=filter_by)

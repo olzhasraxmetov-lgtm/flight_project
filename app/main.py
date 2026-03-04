@@ -1,3 +1,4 @@
+from app.core.logger import logger
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from app.core.config import settings
