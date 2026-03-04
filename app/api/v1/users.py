@@ -24,7 +24,7 @@ async def create_user(
         raise UserEmailAlreadyExistsHTTPException
 
 @router.post("/login", summary='Аутентификация пользователя')
-async def create_user(
+async def login_user(
     db: DBDep,
     response: Response,
     payload: UserLoginRequest = Body(...),
