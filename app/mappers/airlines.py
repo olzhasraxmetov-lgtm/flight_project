@@ -3,5 +3,5 @@ from app.models.airlines import AirlinesORM
 from app.schemas.airlines import AirlineResponse
 
 class AirlinesMapper(DataMapper):
-    db_model: AirlinesORM
-    schema: AirlineResponse
+    db_model = AirlinesORM
+    schema = AirlineResponse
