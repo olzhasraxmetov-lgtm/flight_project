@@ -2,12 +2,12 @@ from typing import Annotated
 
 import jwt
 from fastapi import Depends, Request
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, APIKeyCookie
 from jwt.exceptions import InvalidTokenError
 
 from app.core.config import settings
 from app.core.database import AsyncSessionLocal
-from app.exceptions.api import NoAccessTokenHTTPException, IncorrectTokenHTTPException
+from app.exceptions.api import NoAccessTokenHTTPException, IncorrectTokenHTTPException, NotEnoughRightsHTTPException
 from app.schemas.users import UserResponse, TokenData
 from app.services.users import UsersService
 from app.utils.db_manager import DBManager
@@ -19,8 +19,9 @@ async def get_db():
         yield db
 
 DBDep = Annotated[DBManager, Depends(get_db)]
+cookie_scheme = APIKeyCookie(name="access_token", description="Введите токен или авторизуйтесь")
 
-def get_token_from_cookie(request: Request) -> str:
+def get_token_from_cookie(request: Request, _=Depends(cookie_scheme)) -> str:
     token = request.cookies.get("access_token")
     if not token:
         raise NoAccessTokenHTTPException
@@ -49,3 +50,12 @@ async def get_current_user(
     return user
 
 CurrentUser = Annotated[UserResponse, Depends(get_current_user)]
+
+async def check_if_user_is_admin(
+        current_user: CurrentUser
+):
+    if current_user.role != "admin":
+        raise NotEnoughRightsHTTPException
+    return current_user
+
+admin_only = Depends(check_if_user_is_admin)
