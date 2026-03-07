@@ -36,3 +36,7 @@ class NoAccessTokenHTTPException(BaseAppHTTPException):
 class NotEnoughRightsHTTPException(BaseAppHTTPException):
     status_code = 403
     detail = "Недостаточно прав"
+
+class AirlineNotFoundHTTPException(BaseAppHTTPException):
+    status_code = 404
+    detail = 'Авиакомпания не найдена'

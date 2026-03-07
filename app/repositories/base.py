@@ -1,10 +1,10 @@
 from asyncpg import UniqueViolationError
 from pydantic import BaseModel
 from sqlalchemy import select, insert, Sequence, update, delete
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.exceptions.base import ObjectAlreadyExistException
+from app.exceptions.base import ObjectAlreadyExistException, ObjectNotFoundException
 from app.mappers.base import DataMapper
 from loguru import logger
 
@@ -34,7 +34,10 @@ class BaseRepository:
     async def get_one(self, **filter_by):
         query = select(self.model).filter_by(**filter_by)
         result = await self.session.execute(query)
-        model = result.scalar_one()
+        try:
+            model = result.scalar_one()
+        except NoResultFound:
+            raise ObjectNotFoundException
 
         return self.mapper.map_to_domain_entity(model)
 
@@ -65,14 +68,26 @@ class BaseRepository:
             update(self.model)
             .filter_by(**filter_by)
             .values(**data.model_dump(exclude_unset=exclude_unset))
+            .returning(self.model)
         )
         result = await self.session.execute(edit_stmt)
-        if result.rowcount == 0:
-            logger.warning("No entity found to edit",model_name=self.model.__name__,filters=filter_by)
+        updated_obj = result.scalar_one_or_none()
+
+        if updated_obj is None:
+            logger.warning(
+                "No entity found to edit",
+                model_name=self.model.__name__,
+                filters=filter_by
+            )
+            raise ObjectNotFoundException
+
+        return updated_obj
 
 
     async def delete(self, **filter_by) -> None:
-        delete_stmt = delete(self.model).filter_by(**filter_by)
+        delete_stmt = delete(self.model).filter_by(**filter_by).returning(self.model.id)
         result = await self.session.execute(delete_stmt)
-        if result.rowcount == 0:
+        deleted_id = result.scalar_one_or_none()
+        if not deleted_id:
             logger.warning("No entity found to delete",model_name=self.model.__name__,filters=filter_by)
+            raise ObjectNotFoundException

@@ -19,3 +19,6 @@ class UserAlreadyExistException(AppBaseException):
 
 class IncorrectPasswordException(AppBaseException):
     detail = 'Неверный пароль'
+
+class AirlineNotFoundException(AppBaseException):
+    detail = 'Авиакомпания не найдена'
