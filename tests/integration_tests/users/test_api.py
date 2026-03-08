@@ -4,10 +4,9 @@ import pytest
 @pytest.mark.parametrize(
     "email,password, username, phone, status_code",
     [
-        ("olzhas@gmail.com", "somepass123", "user_56", "+447911123451", 200),
-        ("olzhas@gmail.com", "noteasypass", "user_23", "+447911123451", 409),
+        ("olzhas@gmail.com", "somepass123", "user_56", "+77022955423", 200),
         ("new_user@gmail.com", "easypassword", "abc", "invalid_phone", 422),
-        ("user_user@gmail.com", "gggssq654", "user_12", "+447911123452", 200),
+        ("user_user@gmail.com", "gggssq654", "user_12", "+77752953343", 200),
     ]
 )
 async def test_user_flow(
@@ -54,3 +53,18 @@ async def test_user_flow(
     assert response_logout.status_code == status_code
     assert logout_data["status"] == "success"
     assert not ac.cookies.get("access_token")
+
+async def test_user_registration_duplicate(ac):
+    user_data = {
+        "email": "copy@me.com",
+        "password": "copycopy123",
+        "username": "user_copy",
+        "phone": "+77752955102"
+    }
+
+    await ac.post("/users/register", json=user_data)
+
+    response = await ac.post("/users/register", json=user_data)
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "Пользователь с такой почтой уже существует"
