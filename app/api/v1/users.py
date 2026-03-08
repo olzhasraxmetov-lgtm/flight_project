@@ -27,7 +27,24 @@ async def create_user(
 async def login_user(
     db: DBDep,
     response: Response,
-    payload: UserLoginRequest = Body(...),
+    payload: UserLoginRequest = Body(
+        openapi_examples={
+            "1": {
+                "summary": "Пользователь olzhas",
+                "value": {
+                    "email": "olzhas@example.com",
+                    "password": "olzhas123",
+                },
+            },
+            "2": {
+                "summary": "Админ",
+                "value": {
+                    "email": "admin@example.com",
+                    "password": "admin123",
+                },
+            },
+        }
+    ),
 ):
     try:
         access_token = await UsersService(db).authenticate_user(payload)

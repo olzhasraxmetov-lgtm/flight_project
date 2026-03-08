@@ -1,15 +1,24 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field, EmailStr
-from pydantic_extra_types.phone_numbers import PhoneNumber
-
+from pydantic import BaseModel, Field, EmailStr, field_validator
+import re
 from app.helpers.users_role import UserRoleEnum
 
 
 class UserBase(BaseModel):
     email: EmailStr = Field(min_length=7, max_length=30, description='Почта пользователя')
     username: str = Field(min_length=6, max_length=15, description='Имя пользователя')
-    phone: PhoneNumber = Field(description='Телефон пользователя')
+    phone: str = Field(description='Телефон пользователя')
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v: str) -> str:
+        clean_phone = re.sub(r"[^\d+]", "", v)
+
+        if not re.match(r"^\+7\d{10}$", clean_phone):
+            raise ValueError("Номер телефона должен быть в формате +77022955423")
+
+        return clean_phone
 
 class UserRequestCreate(UserBase):
     password: str

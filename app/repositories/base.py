@@ -41,11 +41,12 @@ class BaseRepository:
 
         return self.mapper.map_to_domain_entity(model)
 
-    async def add(self, data: BaseModel):
+    async def add(self, data: BaseModel | dict):
+        values = data if isinstance(data, dict) else data.model_dump()
         try:
-            add_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
+            add_stmt = insert(self.model).values(**values).returning(self.model)
             result = await self.session.execute(add_stmt)
-            model = result.scalars().one()
+            model = result.scalar_one()
             return self.mapper.map_to_domain_entity(model)
         except IntegrityError as ex:
             logger.warning("Integrity error", model_name=self.model.__name__, detail=str(ex))
@@ -55,19 +56,32 @@ class BaseRepository:
                 logger.error(f"Unexpected IntegrityError: {ex}")
                 raise ex
 
-    async def add_bulk(self, data: Sequence[BaseModel]):
+    async def add_bulk(self, data: Sequence[BaseModel | dict]):
+        values = [
+            item if isinstance(item, dict) else item.model_dump()
+            for item in data
+        ]
+
         try:
-            add_stmt = insert(self.model).values(*data).returning(self.model)
-            await self.session.execute(add_stmt)
+            add_stmt = insert(self.model).values(values).returning(self.model)
+            result = await self.session.execute(add_stmt)
+
+            models = result.scalars().all()
+
+            return [self.mapper.map_to_domain_entity(m) for m in models]
+
         except IntegrityError as ex:
             logger.warning("Bulk Integrity error", model_name=self.model.__name__)
-            raise ObjectAlreadyExistException from ex
+            if "unique constraint" in str(ex.orig).lower():
+                raise ObjectAlreadyExistException from ex
+            raise ex
 
-    async def edit(self, data: BaseModel, exclude_unset: bool = False, **filter_by) -> None:
+    async def edit(self, data: BaseModel | dict, exclude_unset: bool = False, **filter_by) -> None:
+        values = data if isinstance(data, dict) else data.model_dump(exclude_unset=exclude_unset)
         edit_stmt = (
             update(self.model)
             .filter_by(**filter_by)
-            .values(**data.model_dump(exclude_unset=exclude_unset))
+            .values(**values)
             .returning(self.model)
         )
         result = await self.session.execute(edit_stmt)
@@ -81,7 +95,7 @@ class BaseRepository:
             )
             raise ObjectNotFoundException
 
-        return updated_obj
+        return self.mapper.map_to_domain_entity(updated_obj)
 
 
     async def delete(self, **filter_by) -> None:
