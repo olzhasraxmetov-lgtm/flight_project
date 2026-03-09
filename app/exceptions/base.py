@@ -22,3 +22,6 @@ class IncorrectPasswordException(AppBaseException):
 
 class AirlineNotFoundException(AppBaseException):
     detail = 'Авиакомпания не найдена'
+
+class AirportNotFoundException(AppBaseException):
+    detail = 'Аэропорт не найден'

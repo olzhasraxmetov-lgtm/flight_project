@@ -40,3 +40,7 @@ class NotEnoughRightsHTTPException(BaseAppHTTPException):
 class AirlineNotFoundHTTPException(BaseAppHTTPException):
     status_code = 404
     detail = 'Авиакомпания не найдена'
+
+class AirportNotFoundHTTPException(BaseAppHTTPException):
+    status_code = 404
+    detail = 'Аэропорт не найден'
