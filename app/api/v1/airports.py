@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Body, Response
+from fastapi import APIRouter, Query
 
-from app.core.dependencies import CurrentUser, admin_only
 from app.core.dependencies import DBDep
+from app.core.dependencies import admin_only, PaginationDep
+from app.exceptions.api import AirportNotFoundHTTPException
+from app.exceptions.base import AirportNotFoundException
 from app.schemas.airports import AirportResponse, AirportCreate, AirportUpdate
 from app.services.airports import AirportsService
-from app.exceptions.base import AirportNotFoundException
-from app.exceptions.api import AirportNotFoundHTTPException
+
 router = APIRouter(
     prefix="/airports",
     tags=["Аэропорты"],
@@ -14,8 +15,17 @@ router = APIRouter(
 @router.get("", response_model=list[AirportResponse], summary='Получить список аэропортов')
 async def get_airports(
     db: DBDep,
+    pagination: PaginationDep,
+    city: str = Query(None, min_length=3, max_length=30, description="Город аэропорта"),
+    country: str = Query(None, min_length=2, max_length=30, description="Страна аэропорта"),
+    name: str = Query(None, min_length=3, max_length=50, description="Название аэропорта"),
 ):
-    return await AirportsService(db).get_airports()
+    return await AirportsService(db).get_filtered_airports_with_pagination(
+        pagination=pagination,
+        city=city,
+        country=country,
+        name=name,
+    )
 
 @router.post(
     "",

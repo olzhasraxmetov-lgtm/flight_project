@@ -1,5 +1,4 @@
 from typing import Sequence
-
 from app.schemas.airports import AirportCreate, AirportResponse, AirportUpdate
 from app.services.base import BaseService
 from app.exceptions.base import ObjectNotFoundException, AirportNotFoundException
@@ -11,8 +10,21 @@ class AirportsService(BaseService):
         await self.db.commit()
         return new_airport
 
-    async def get_airports(self) -> Sequence[AirportResponse]:
-        return await self.db.airports.get_all()
+    async def get_filtered_airports_with_pagination(
+            self,
+            pagination,
+            city: str | None,
+            country: str | None,
+            name: str | None
+    ) -> Sequence[AirportResponse]:
+        per_page = pagination.per_page or 5
+        return await self.db.airports.get_paginated_items(
+            limit=per_page,
+            offset=per_page * (pagination.page - 1),
+            city=city,
+            country=country,
+            name=name,
+        )
 
     async def _check_if_airport_exists(self, airport_id: int) -> AirportResponse:
         try:

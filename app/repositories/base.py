@@ -23,6 +23,31 @@ class BaseRepository:
     async def get_all(self, *args, **kwargs):
         return await self.get_filtered()
 
+    async def get_paginated_items(
+            self,
+            offset: int,
+            limit: int,
+            **filters
+    ):
+        query = select(self.model)
+
+        if filters:
+            filter_clauses = []
+            for key, value in filters.items():
+                if value:
+                    column = getattr(self.model, key, None)
+                    if column:
+                        if isinstance(value, str):
+                            filter_clauses.append(column.ilike(f"%{value.strip()}%"))
+                        else:
+                            filter_clauses.append(column == value)
+            if filter_clauses:
+                query = query.filter(*filter_clauses)
+
+        query = query.offset(offset).limit(limit)
+        result = await self.session.execute(query)
+        return [self.mapper.map_to_domain_entity(item) for item in result.scalars().all()]
+
     async def get_one_or_none(self, **filter_by):
         query = select(self.model).filter_by(**filter_by)
         result = await self.session.execute(query)

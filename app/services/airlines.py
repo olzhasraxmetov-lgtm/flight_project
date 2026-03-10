@@ -10,8 +10,16 @@ class AirlinesService(BaseService):
         await self.db.commit()
         return new_airline
 
-    async def get_all_airlines(self) -> Sequence[AirlineResponse]:
-        return await self.db.airlines.get_all()
+    async def get_filtered_airlines_with_pagination(
+            self,
+            pagination,
+            name: str | None
+    ) -> Sequence[AirlineResponse]:
+        return await self.db.airlines.get_paginated_items(
+            limit=pagination.per_page or 5,
+            offset=(pagination.page - 1) * (pagination.per_page or 5),
+            name=name
+        )
 
     async def check_if_airline_exists(self, airline_id: int):
         try:

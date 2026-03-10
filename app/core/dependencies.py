@@ -1,9 +1,10 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
 import jwt
-from fastapi import Depends, Request
+from fastapi import Depends, Request, Query
 from fastapi.security import OAuth2PasswordBearer, APIKeyCookie
 from jwt.exceptions import InvalidTokenError
+from pydantic import BaseModel
 
 from app.core.config import settings
 from app.core.database import AsyncSessionLocal
@@ -59,3 +60,9 @@ async def check_if_user_is_admin(
     return current_user
 
 admin_only = Depends(check_if_user_is_admin)
+
+class PaginationParams(BaseModel):
+    page: Annotated[Optional[int], Query(1, ge=1)]
+    per_page: Annotated[Optional[int], Query(None, ge=1, lt=30)]
+
+PaginationDep = Annotated[PaginationParams, Depends()]

@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Body, Response
+from fastapi import APIRouter, Body, Query
 
-from app.core.dependencies import CurrentUser, admin_only
 from app.core.dependencies import DBDep
+from app.core.dependencies import admin_only, PaginationDep
 from app.exceptions.api import AirlineNotFoundHTTPException
-from app.exceptions.base import ObjectNotFoundException, AirlineNotFoundException
+from app.exceptions.base import AirlineNotFoundException
 from app.schemas.airlines import AirlineResponse, AirlineCreate, AirlineUpdate
 from app.services.airlines import AirlinesService
 
@@ -15,8 +15,13 @@ router = APIRouter(
 @router.get("/", response_model=list[AirlineResponse], summary='Получит список авиакомпаний')
 async def get_airlines(
     db: DBDep,
+    pagination: PaginationDep,
+    name: str = Query(None, min_length=3, max_length=30, description='Название авиакомпаний'),
 ):
-    return await AirlinesService(db).get_all_airlines()
+    return await AirlinesService(db).get_filtered_airlines_with_pagination(
+        pagination=pagination,
+        name=name,
+    )
 
 
 @router.get("/{airline_id}", summary='Получить авиакомпанию по ID', response_model=AirlineResponse)
