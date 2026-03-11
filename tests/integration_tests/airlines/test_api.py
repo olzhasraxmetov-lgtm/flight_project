@@ -16,14 +16,42 @@ async def test_airlines_create(iata_code, name, status_code, admin_user):
     })
     assert response_create.status_code == status_code
 
-async def test_get_all_airline(auth_user, created_airline):
-    response = await auth_user.get('/airlines/')
+@pytest.mark.parametrize("params, expected_len, expected_iata", [
+    ({"page": 1, "per_page": 10}, 3, "IQ"),
+    ({"name": "Air", "page": 1, "per_page": 2}, 2, "IQ"),
+    ({"name": "NonExistent"}, 0, None),
+])
+async def test_get_all_airline(auth_user, db, params, expected_len, expected_iata):
+    airlines = [
+        {"iata_code": "IQ", "name": "Qazaq Air"},
+        {"iata_code": "AA", "name": "American Airlines"},
+        {"iata_code": "BA", "name": "British Airways"},
+    ]
+    await db.airlines.add_bulk(airlines)
+    await db.commit()
+
+    response = await auth_user.get('/airlines/', params=params)
 
     assert response.status_code == 200
     data = response.json()
 
-    assert len(data) >= 1
-    assert any(item['iata_code'] == created_airline.iata_code for item in data)
+    assert len(data) == expected_len
+    if expected_iata:
+        assert any(item['iata_code'] == expected_iata for item in data)
+
+@pytest.mark.parametrize(
+    "page, per_page", [
+    (0, 10),
+    (-1, 10),
+    (1, 0),
+    (1, 101)
+    ]
+)
+async def test_get_airlines_invalid_pagination(ac, page, per_page):
+    response = await ac.get('/airlines/', params={"page": page, "per_page": per_page})
+
+    assert response.status_code == 422
+    assert response.json()['detail'][0]['loc'][-1] in ['page', 'per_page']
 
 
 async def test_get_all_airlines_anonymous(ac, created_airline):

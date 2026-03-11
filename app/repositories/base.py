@@ -34,7 +34,7 @@ class BaseRepository:
         if filters:
             filter_clauses = []
             for key, value in filters.items():
-                if value:
+                if value is not None:
                     column = getattr(self.model, key, None)
                     if column:
                         if isinstance(value, str):

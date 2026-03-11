@@ -1,4 +1,7 @@
+import pytest
+
 from app.schemas.airlines import AirlineCreate
+
 
 async def test_get_airline_by_id(db, created_airline):
     airline_db = await db.airlines.get_one_or_none(id=created_airline.id)
@@ -6,21 +9,31 @@ async def test_get_airline_by_id(db, created_airline):
     assert airline_db.iata_code == created_airline.iata_code
     assert airline_db.name == created_airline.name
 
-async def test_list_of_airline(db):
-    first_data = AirlineCreate(
-        iata_code='JT',
-        name='Avia Jaynar'
-    )
-    second_data = AirlineCreate(
-        iata_code='DV',
-        name='Scat'
-    )
+@pytest.mark.parametrize(
+    "filter_name, offset, limit, expected_count",[
+        ("air", 0, 10, 3),
+        ("air", 1, 10, 2),
+        ("Qazaq", 0, 10, 1),
+        ("wrong", 0, 10, 0),
+        (None, 0, 2, 2),
+    ]
+)
+async def test_list_of_airlines(db, filter_name, offset, limit, expected_count):
+    airlines = [
+        AirlineCreate(iata_code='IQ', name='Qazaq Air'),
+        AirlineCreate(iata_code='AA', name='American Airlines'),
+        AirlineCreate(iata_code='BA', name='British Airways'),
+    ]
 
-    await db.airlines.add_bulk([first_data, second_data])
+    await db.airlines.add_bulk(airlines)
     await db.commit()
 
-    db_airlines = await db.airlines.get_all()
-    assert len(db_airlines) == 2
+    db_airlines = await db.airlines.get_paginated_items(
+        offset=offset,
+        limit=limit,
+        name=filter_name
+    )
+    assert len(db_airlines) == expected_count
 
 async def test_add_airline(db):
     new_airline_data = AirlineCreate(
