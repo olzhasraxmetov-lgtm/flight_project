@@ -12,6 +12,7 @@ from app.core.dependencies import get_db, get_current_user
 pytest_plugins = [
     "tests.fixtures.users",
     "tests.fixtures.airlines",
+    "tests.fixtures.airports",
 ]
 
 @pytest.fixture(scope="session", autouse=True)
