@@ -6,6 +6,7 @@ from app.core.config import settings
 from app.api.v1.users import router as user_router
 from app.api.v1.airlines import router as airline_router
 from app.api.v1.airports import router as airport_router
+from app.api.v1.flights import router as flight_router
 from app.helpers.exception_handler import add_exception_handler
 app = FastAPI(
     title=settings.APP_NAME,
@@ -16,6 +17,7 @@ app = FastAPI(
 app.include_router(user_router)
 app.include_router(airline_router)
 app.include_router(airport_router)
+app.include_router(flight_router)
 add_exception_handler(app=app)
 @app.get('/', include_in_schema=False)
 async def root():
