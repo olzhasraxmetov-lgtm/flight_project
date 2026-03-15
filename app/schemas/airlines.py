@@ -13,3 +13,7 @@ class AirlineUpdate(BaseModel):
 
 class AirlineResponse(AirlineBase):
     id: int
+
+class AirlineShort(BaseModel):
+    id: int
+    name: str

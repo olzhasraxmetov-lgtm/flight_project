@@ -35,3 +35,8 @@ class AirportUpdate(BaseModel):
 class AirportResponse(AirportBase):
     id: int
 
+class AirportShort(BaseModel):
+    id: int
+    name: str
+    code: str
+    city: str
