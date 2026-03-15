@@ -56,22 +56,25 @@ class BaseRepository:
             return None
         return self.mapper.map_to_domain_entity(model)
 
-    async def get_one(self, **filter_by):
+    async def get_one(self, map_res: bool = True, **filter_by):
         query = select(self.model).filter_by(**filter_by)
         result = await self.session.execute(query)
         try:
             model = result.scalar_one()
         except NoResultFound:
             raise ObjectNotFoundException
-
+        if not map_res:
+            return model
         return self.mapper.map_to_domain_entity(model)
 
-    async def add(self, data: BaseModel | dict):
+    async def add(self, data: BaseModel | dict, map_res: bool = True):
         values = data if isinstance(data, dict) else data.model_dump()
         try:
             add_stmt = insert(self.model).values(**values).returning(self.model)
             result = await self.session.execute(add_stmt)
             model = result.scalar_one()
+            if not map_res:
+                return model
             return self.mapper.map_to_domain_entity(model)
         except IntegrityError as ex:
             logger.warning("Integrity error", model_name=self.model.__name__, detail=str(ex))
@@ -101,7 +104,7 @@ class BaseRepository:
                 raise ObjectAlreadyExistException from ex
             raise ex
 
-    async def edit(self, data: BaseModel | dict, exclude_unset: bool = False, **filter_by) -> None:
+    async def edit(self, data: BaseModel | dict, exclude_unset: bool = False, map_res: bool = True, **filter_by) -> None:
         values = data if isinstance(data, dict) else data.model_dump(exclude_unset=exclude_unset)
         edit_stmt = (
             update(self.model)
@@ -119,7 +122,8 @@ class BaseRepository:
                 filters=filter_by
             )
             raise ObjectNotFoundException
-
+        if not map_res:
+            return updated_obj
         return self.mapper.map_to_domain_entity(updated_obj)
 
 
