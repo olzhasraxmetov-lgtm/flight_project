@@ -26,15 +26,8 @@ class AirportsService(BaseService):
             name=name,
         )
 
-    async def _check_if_airport_exists(self, airport_id: int) -> AirportResponse:
-        try:
-            airport = await self.db.airports.get_one(id=airport_id)
-        except ObjectNotFoundException as ex:
-            raise AirportNotFoundException from ex
-        return airport
-
     async def get_airport_by_id(self, airport_id: int) -> AirportResponse:
-         return await self._check_if_airport_exists(airport_id)
+         return await self.check_if_entity_exists(self.db.airports, airport_id, AirportNotFoundException)
 
     async def _edit_airport(self, airport_id: int, payload: AirportUpdate, exclude_unset):
         try:

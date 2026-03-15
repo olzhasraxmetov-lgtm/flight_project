@@ -21,15 +21,8 @@ class AirlinesService(BaseService):
             name=name
         )
 
-    async def check_if_airline_exists(self, airline_id: int):
-        try:
-            airline = await self.db.airlines.get_one(id=airline_id)
-        except ObjectNotFoundException as ex:
-            raise AirlineNotFoundException from ex
-        return airline
-
     async def get_airline(self, airline_id: int) -> AirlineResponse:
-         return await self.check_if_airline_exists(airline_id)
+        return await self.check_if_entity_exists(self.db.airlines, airline_id, AirlineNotFoundException)
 
     async def _edit_airline(self, airline_id: int, payload: AirlineUpdate, exclude_unset):
         try:
