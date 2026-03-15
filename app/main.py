@@ -13,12 +13,12 @@ app = FastAPI(
     description=settings.APP_DESCRIPTION,
     version=settings.APP_VERSION,
 )
+add_exception_handler(app=app)
 
 app.include_router(user_router)
 app.include_router(airline_router)
 app.include_router(airport_router)
 app.include_router(flight_router)
-add_exception_handler(app=app)
 @app.get('/', include_in_schema=False)
 async def root():
     """
