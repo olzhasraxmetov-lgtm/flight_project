@@ -1,6 +1,8 @@
+from sqlalchemy.orm import joinedload
+
 from app.exceptions.base import (AirportNotFoundException, AirlineNotFoundException,
                                  SameAirportException, FlightNotFoundException, ObjectNotFoundException)
-from app.schemas.flights import FlightCreate, FlightResponse, FlightResponseWithoutRels, FlightUpdate
+from app.schemas.flights import FlightCreate, FlightResponse, FlightResponseWithoutRels, FlightUpdate, FlightSearch
 from app.services.base import BaseService
 from loguru import logger
 
@@ -13,6 +15,35 @@ class FlightsService(BaseService):
             logger.warning("Flight not found", flight_id=flight_id)
             raise FlightNotFoundException
 
+    async def get_paginated_flights(
+            self,
+            search: FlightSearch,
+            pagination
+    ) -> list[FlightResponse]:
+        filter_clauses = []
+        options = [
+            joinedload(self.db.flights.model.airline),
+            joinedload(self.db.flights.model.departure_airport),
+            joinedload(self.db.flights.model.arrival_airport),
+        ]
+        if search.date_from:
+            filter_clauses.append(self.db.flights.model.departure_at >= search.date_from)
+
+        if search.date_to:
+            filter_clauses.append(self.db.flights.model.departure_at <= search.date_to)
+
+        if search.max_price and search.max_price > 0:
+            filter_clauses.append(self.db.flights.model.price <= search.max_price)
+
+        return await self.db.flights.get_paginated_items(
+            *filter_clauses,
+            offset=(pagination.page - 1) * (pagination.per_page or 5),
+            limit=pagination.per_page or 5,
+            options=options,
+            departure_airport_id=search.departure_airport_id,
+            arrival_airport_id=search.arrival_airport_id,
+            airline_id=search.airline_id,
+        )
 
     async def _validation_for_entities(self, payload: FlightCreate | FlightUpdate) -> None:
         if payload.departure_airport_id is not None:

@@ -3,7 +3,6 @@ from pydantic import BaseModel
 from sqlalchemy import select, insert, Sequence, update, delete
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.exceptions.base import ObjectAlreadyExistException, ObjectNotFoundException
 from app.mappers.base import DataMapper
 from loguru import logger
@@ -25,28 +24,27 @@ class BaseRepository:
 
     async def get_paginated_items(
             self,
+            *filter_clauses,
             offset: int,
             limit: int,
-            **filters
+            options: list = None,
+            **simple_filters
     ):
         query = select(self.model)
 
-        if filters:
-            filter_clauses = []
-            for key, value in filters.items():
-                if value is not None:
-                    column = getattr(self.model, key, None)
-                    if column:
-                        if isinstance(value, str):
-                            filter_clauses.append(column.ilike(f"%{value.strip()}%"))
-                        else:
-                            filter_clauses.append(column == value)
-            if filter_clauses:
-                query = query.filter(*filter_clauses)
+        if options:
+            query = query.options(*options)
 
+        if filter_clauses:
+            query = query.filter(*filter_clauses)
+
+        if simple_filters:
+            clean_filters = {k: v for k, v in simple_filters.items() if v is not None and v != 0}
+            if clean_filters:
+                query = query.filter_by(**clean_filters)
         query = query.offset(offset).limit(limit)
         result = await self.session.execute(query)
-        return [self.mapper.map_to_domain_entity(item) for item in result.scalars().all()]
+        return [self.mapper.map_to_domain_entity(item) for item in result.unique().scalars().all()]
 
     async def get_one_or_none(self, **filter_by):
         query = select(self.model).filter_by(**filter_by)

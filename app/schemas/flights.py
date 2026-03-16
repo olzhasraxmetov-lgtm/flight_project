@@ -1,8 +1,11 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from decimal import Decimal
+
+from app.exceptions.api import InvalidDateTimeException
+from app.exceptions.base import SameAirportException
 from app.schemas.airports import AirportShort
 from app.schemas.airlines import AirlineShort
 
@@ -61,3 +64,22 @@ class FlightResponse(FlightBase):
     arrival_airport: AirportShort
     airline: AirlineShort
 
+class FlightSearch(BaseModel):
+    departure_airport_id: int | None = Field(default=None)
+    arrival_airport_id: int | None = Field(default=None)
+    airline_id: int | None = Field(default=None)
+    date_from: datetime | None = Field(default=None)
+    date_to: datetime | None = Field(default=None)
+    max_price: Decimal | None = Field(default=None, ge=0)
+
+    @model_validator(mode="after")
+    def parse_airports_data(self):
+        if (self.departure_airport_id is not None and
+                self.arrival_airport_id is not None and
+                self.departure_airport_id == self.arrival_airport_id):
+            raise SameAirportException
+
+        if self.date_from and self.date_to:
+            if self.date_from >= self.date_to:
+                raise InvalidDateTimeException
+        return self

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from app.exceptions.api import InvalidDataTPException
+from app.exceptions.api import InvalidDateTimeException
 from app.exceptions.base import ObjectNotFoundException
 from app.utils.db_manager import DBManager
 from app.exceptions.base import AppBaseException
@@ -31,4 +31,4 @@ class BaseService:
     @staticmethod
     def check_date_to_after_date_from(departure_at: datetime, arrival_at: datetime) -> None:
         if departure_at >= arrival_at:
-            raise InvalidDataTPException
+            raise InvalidDateTimeException
