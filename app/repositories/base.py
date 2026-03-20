@@ -39,12 +39,25 @@ class BaseRepository:
             query = query.filter(*filter_clauses)
 
         if simple_filters:
-            clean_filters = {k: v for k, v in simple_filters.items() if v is not None and v != 0}
-            if clean_filters:
-                query = query.filter_by(**clean_filters)
+            for key, value in simple_filters.items():
+                if value is None:
+                    continue
+
+                if key.endswith("__ilike"):
+                    column_name = key.replace("__ilike", "")
+                    column = getattr(self.model, column_name)
+                    query = query.filter(column.ilike(f"%{value}%"))
+
+                else:
+                    query = query.filter(getattr(self.model, key) == value)
+
         query = query.offset(offset).limit(limit)
         result = await self.session.execute(query)
-        return [self.mapper.map_to_domain_entity(item) for item in result.unique().scalars().all()]
+
+        return [
+            self.mapper.map_to_domain_entity(item)
+            for item in result.unique().scalars().all()
+        ]
 
     async def get_one_or_none(self, **filter_by):
         query = select(self.model).filter_by(**filter_by)
