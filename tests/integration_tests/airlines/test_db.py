@@ -31,7 +31,7 @@ async def test_list_of_airlines(db, filter_name, offset, limit, expected_count):
     db_airlines = await db.airlines.get_paginated_items(
         offset=offset,
         limit=limit,
-        name=filter_name
+        name__ilike=filter_name
     )
     assert len(db_airlines) == expected_count
 

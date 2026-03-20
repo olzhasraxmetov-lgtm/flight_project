@@ -2,12 +2,17 @@ import pytest
 
 from app.schemas.airports import AirportCreate
 
+
 @pytest.mark.parametrize(
     "filters, offset, limit, expected_count", [
-        ({"country": "Kazakh"}, 0, 10, 3),
+        ({"country__ilike": "Kazakh"}, 0, 10, 3),
+
         ({"name": "Almaty International"}, 0, 10, 1),
+
         ({"city": "Astana"}, 0, 10, 1),
+
         ({"name": "wrong_name", "country": "Kazakhstan"}, 0, 10, 0),
+
         ({}, 2, 10, 2)
     ]
 )
