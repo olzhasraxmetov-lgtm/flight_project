@@ -13,6 +13,7 @@ pytest_plugins = [
     "tests.fixtures.users",
     "tests.fixtures.airlines",
     "tests.fixtures.airports",
+    "tests.fixtures.flights",
 ]
 
 @pytest.fixture(scope="session", autouse=True)
