@@ -21,9 +21,9 @@ class AirportsService(BaseService):
         return await self.db.airports.get_paginated_items(
             limit=per_page,
             offset=per_page * (pagination.page - 1),
-            city=city,
-            country=country,
-            name=name,
+            city__ilike=city,
+            country__ilike=country,
+            name__ilike=name,
         )
 
     async def get_airport_by_id(self, airport_id: int) -> AirportResponse:

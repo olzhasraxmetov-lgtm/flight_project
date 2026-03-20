@@ -18,7 +18,7 @@ class AirlinesService(BaseService):
         return await self.db.airlines.get_paginated_items(
             limit=pagination.per_page or 5,
             offset=(pagination.page - 1) * (pagination.per_page or 5),
-            name=name
+            name__ilike=name
         )
 
     async def get_airline(self, airline_id: int) -> AirlineResponse:
