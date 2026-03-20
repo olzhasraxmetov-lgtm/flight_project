@@ -31,14 +31,14 @@ class DateParseMixin:
 
 class FlightBase(BaseModel):
     flight_number: str = Field(min_length=4, max_length=12,description="Номер рейса")
-    departure_at: datetime = Field(example="15.03.2026 10:00",description="Время вылета рейса")
-    arrival_at: datetime = Field(example="15.03.2026 14:30",description="Время прилета рейса")
+    departure_at: datetime = Field(json_schema_extra={"default-example-departure": "15.03.2026 10:00"},description="Время вылета рейса")
+    arrival_at: datetime = Field(json_schema_extra={"default-example-arrival": "15.03.2026 14:30"},description="Время прилета рейса")
     price: Decimal = Field(default=Decimal('0.00'), ge=0,description="Цена рейса")
 
 class FlightUpdate(DateParseMixin, BaseModel):
     flight_number: str | None = Field(None,min_length=4, max_length=12)
-    departure_at: datetime | None = Field(default=None,example="15.03.2026 10:00")
-    arrival_at: datetime  | None= Field(default=None,example="15.03.2026 14:30")
+    departure_at: datetime | None = Field(default=None,json_schema_extra={"default_example_departure": "15.03.2026 10:00"})
+    arrival_at: datetime  | None= Field(default=None,json_schema_extra={"default_example_arrival": "15.03.2026 14:30"})
     price: Decimal | None = Field(None, ge=0)
 
     departure_airport_id: int | None = Field(default=None)
