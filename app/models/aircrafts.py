@@ -1,5 +1,5 @@
 from app.core.database import Base
-from sqlalchemy.orm import mapped_column, Mapped
+from sqlalchemy.orm import mapped_column, Mapped, relationship
 from sqlalchemy import String
 
 
@@ -10,3 +10,9 @@ class AircraftsORM(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     manufacturer: Mapped[str] = mapped_column(String(30), nullable=False)
+
+    templates: Mapped[list["SeamTemplatesORM"]] = relationship(
+        "SeamTemplatesORM",
+        back_populates="aircraft",
+        cascade="all, delete-orphan",
+    )

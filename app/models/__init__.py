@@ -3,6 +3,7 @@ from .airlines import AirlinesORM
 from .airports import AirportsORM
 from .flights import FlightsORM
 from .aircrafts import AircraftsORM
+from .seat_templates import SeamTemplatesORM
 
 
-__all__ = ["UsersORM", "AirlinesORM", "AirportsORM", "FlightsORM", "AircraftsORM"]
+__all__ = ["UsersORM", "AirlinesORM", "AirportsORM", "FlightsORM", "AircraftsORM", "SeamTemplatesORM"]
