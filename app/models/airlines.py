@@ -11,7 +11,7 @@ class AirlinesORM(Base):
     iata_code: Mapped[str] = mapped_column(String(3), unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
 
-    flights: Mapped[list['AirlinesORM']] = relationship(
-        'AirlinesORM',
+    flights: Mapped[list['FlightsORM']] = relationship(
+        'FlightsORM',
         back_populates='airline'
     )
