@@ -2,6 +2,7 @@ from app.repositories.users import UsersRepository
 from app.repositories.airlines import AirlinesRepository
 from app.repositories.airports import AirportsRepository
 from app.repositories.flights import FlightsRepository
+from app.repositories.aircrafts import AircraftsRepository
 
 class DBManager:
     def __init__(self, session_factory):
@@ -14,6 +15,7 @@ class DBManager:
         self.airlines = AirlinesRepository(self.session)
         self.airports = AirportsRepository(self.session)
         self.flights = FlightsRepository(self.session)
+        self.aircrafts = AircraftsRepository(self.session)
 
 
         return self

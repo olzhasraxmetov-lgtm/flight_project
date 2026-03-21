@@ -7,3 +7,6 @@ class AircraftBase(BaseModel):
 
 class AircraftResponse(AircraftBase):
     id: int
+
+class AircraftCreate(AircraftBase):
+    pass
