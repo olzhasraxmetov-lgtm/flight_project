@@ -17,7 +17,7 @@ class DBManager:
         self.airports = AirportsRepository(self.session)
         self.flights = FlightsRepository(self.session)
         self.aircrafts = AircraftsRepository(self.session)
-        self.aircrafts = SeatTemplatesRepository(self.session)
+        self.seat_templates = SeatTemplatesRepository(self.session)
 
 
         return self

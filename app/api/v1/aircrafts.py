@@ -18,7 +18,14 @@ async def create_aircraft(
     return await AircraftsService(db).create_aircraft(payload)
 
 @router.get("", response_model=list[AircraftResponse], summary='Получить все самолеты', dependencies=[admin_only])
-async def create_aircraft(
+async def get_all_aircrafts(
     db: DBDep
 ):
     return await AircraftsService(db).get_aircrafts()
+
+@router.get("{aircraft_id}", response_model=AircraftResponse, summary='Получить самолет по ID', dependencies=[admin_only])
+async def get_aircraft_by_id(
+    db: DBDep,
+    aircraft_id: int
+):
+    return await AircraftsService(db).get_aircraft_by_id(aircraft_id)
