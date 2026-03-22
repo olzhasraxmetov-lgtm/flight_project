@@ -7,11 +7,18 @@ class SeamTemplatesORM(Base):
     __tablename__ = "seat_templates"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    aircraft_model_id: Mapped[int] = mapped_column(ForeignKey("aircrafts.id"))
+    aircraft_model_id: Mapped[int] = mapped_column(ForeignKey("aircrafts.id", ondelete="CASCADE"), nullable=False)
     name: Mapped[str] = mapped_column(String(60), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     aircraft: Mapped["AircraftsORM"] = relationship(
         "AircraftsORM",
         back_populates="templates",
+    )
+
+    seats: Mapped[list["SeatTemplateSeatsORM"]] = relationship(
+        "SeatTemplateSeatsORM",
+        back_populates="template",
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )
