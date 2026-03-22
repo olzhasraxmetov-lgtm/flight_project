@@ -10,3 +10,7 @@ class AircraftResponse(AircraftBase):
 
 class AircraftCreate(AircraftBase):
     pass
+
+class AircraftUpdate(BaseModel):
+    name: str | None = Field(None, min_length=6, max_length=50)
+    manufacturer: str | None = Field(None, min_length=6, max_length=30)

@@ -15,4 +15,5 @@ class AircraftsORM(Base):
         "SeamTemplatesORM",
         back_populates="aircraft",
         cascade="all, delete-orphan",
+        passive_deletes=True,
     )
