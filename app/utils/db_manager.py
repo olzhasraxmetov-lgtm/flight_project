@@ -4,6 +4,7 @@ from app.repositories.airports import AirportsRepository
 from app.repositories.flights import FlightsRepository
 from app.repositories.aircrafts import AircraftsRepository
 from app.repositories.seat_templates import SeatTemplatesRepository
+from app.repositories.seat_template_seat import SeatTemplateSeatsRepository
 
 class DBManager:
     def __init__(self, session_factory):
@@ -18,6 +19,7 @@ class DBManager:
         self.flights = FlightsRepository(self.session)
         self.aircrafts = AircraftsRepository(self.session)
         self.seat_templates = SeatTemplatesRepository(self.session)
+        self.seat_template_seats = SeatTemplateSeatsRepository(self.session)
 
 
         return self

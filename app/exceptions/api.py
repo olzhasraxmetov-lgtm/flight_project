@@ -45,6 +45,10 @@ class AirportNotFoundHTTPException(BaseAppHTTPException):
     status_code = 404
     detail = 'Аэропорт не найден'
 
+class AircraftNotFoundHTTPException(BaseAppHTTPException):
+    status_code = 404
+    detail = 'Самолет не найден'
+
 class InvalidDateTimeException(BaseAppHTTPException):
     status_code = 400
     detail = 'Дата вылета не может быть позднее даты прилета'
