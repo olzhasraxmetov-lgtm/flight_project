@@ -14,6 +14,7 @@ pytest_plugins = [
     "tests.fixtures.airlines",
     "tests.fixtures.airports",
     "tests.fixtures.flights",
+    "tests.fixtures.aircrafts",
 ]
 
 @pytest.fixture(scope="session", autouse=True)
