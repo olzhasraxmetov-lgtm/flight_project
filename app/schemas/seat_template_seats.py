@@ -7,6 +7,8 @@ class SeatTemplateSeatBase(BaseModel):
     seat_number: str = Field(..., min_length=3, max_length=4, description="Номер места")
     cabin_class: CabinClass = Field(description="Класс места")
     seat_type: SeatType = Field(description="Тип места")
+    row_number: int
+    seat_letter: str
 
 class SeatTemplateSeatResponse(SeatTemplateSeatBase):
     id: int
@@ -16,3 +18,19 @@ class SeatTemplateSeatCreate(BaseModel):
     rows_count: int = Field(..., description="Количество рядов")
     business_class_rows: int = Field(description="Количество рядов бизнес класса")
     first_class_rows: int = Field(description="Количество рядов первого класса")
+
+class SeatGenerationResponse(BaseModel):
+    message: str = "Seats generated successfully"
+    template_id: int
+    count: int
+
+class SeatShortResponse(BaseModel):
+    id: int
+    no: str
+    cabin_class: CabinClass
+    seat_type: SeatType
+
+class SeatTemplateMapResponse(BaseModel):
+    template_id: int
+    total_seats: int
+    rows: dict[str, list[SeatShortResponse]]
