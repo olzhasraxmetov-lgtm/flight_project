@@ -25,3 +25,15 @@ class AirportsORM(Base):
         foreign_keys="[FlightsORM.arrival_airport_id]",
         back_populates='arrival_airport',
     )
+
+    departing_instances: Mapped[list['FlightInstancesORM']] = relationship(
+        "FlightInstancesORM",
+        foreign_keys="[FlightInstancesORM.departure_airport_id]",
+        back_populates='departure_airport',
+    )
+
+    arrival_instances: Mapped[list['FlightInstancesORM']] = relationship(
+        "FlightInstancesORM",
+        foreign_keys="[FlightInstancesORM.arrival_airport_id]",
+        back_populates='arrival_airport',
+    )

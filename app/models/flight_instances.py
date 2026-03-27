@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from app.core.database import Base
-from sqlalchemy.orm import mapped_column, Mapped
+from sqlalchemy.orm import mapped_column, Mapped, relationship
 from sqlalchemy import String, ForeignKey, DateTime, Numeric, Enum, Index
 from datetime import datetime
 
@@ -23,6 +23,18 @@ class FlightInstancesORM(Base):
 
     base_price: Mapped[Decimal] = mapped_column(Numeric(10, 2))
     status: Mapped[FlightStatus] = mapped_column(Enum(FlightStatus, native_enum=True), default=FlightStatus.SCHEDULED)
+
+    departure_airport: Mapped['AirportsORM'] = relationship(
+        'AirportsORM',
+        foreign_keys=[departure_airport_id],
+        back_populates='departing_instances',
+    )
+
+    arrival_airport: Mapped['AirportsORM'] = relationship(
+        'AirportsORM',
+        foreign_keys=[arrival_airport_id],
+        back_populates='arrival_instances',
+    )
 
     __table_args__ = (
         Index("ix_flight_instances_departure_at", "departure_at"),
