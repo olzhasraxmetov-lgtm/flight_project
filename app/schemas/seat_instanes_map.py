@@ -16,3 +16,16 @@ class SeatInstanceMapResponse(BaseModel):
     seat_type: SeatType
     status: SeatStatus
     price_override: Decimal | None = None
+
+class SeatMapShortResponse(BaseModel):
+    id: int
+    no: str
+    cabin_class: CabinClass
+    seat_type: SeatType
+    status: SeatStatus
+    price_override: Decimal | None = None
+
+class FlightInstanceMapResponse(BaseModel):
+    flight_instance_id: int
+    total_seats: int
+    rows: dict[str, list[SeatMapShortResponse]]

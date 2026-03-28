@@ -9,12 +9,14 @@ from app.exceptions.base import SameAirportException
 from app.schemas.airports import AirportShort
 from app.schemas.airlines import AirlineShort
 
+
 class DateParseMixin:
     @field_validator("departure_at", "arrival_at", mode="before")
     @classmethod
     def parse_datetime(cls, value: Any) -> Any:
         if not isinstance(value, str):
             return value
+
         formats = [
             "%d.%m.%Y %H:%M",
             "%Y-%m-%d %H:%M:%S",
@@ -27,7 +29,9 @@ class DateParseMixin:
             except (ValueError, TypeError):
                 continue
 
-        return value
+        raise ValueError(
+            f"Неверный формат даты. Ожидалось: {', '.join(formats)}"
+        )
 
 class FlightBase(BaseModel):
     flight_number: str = Field(min_length=4, max_length=12,description="Номер рейса")

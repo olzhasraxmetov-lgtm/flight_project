@@ -41,6 +41,9 @@ class AircraftNotFoundException(ObjectNotFoundException):
 class SeatTemplateNotFoundException(ObjectNotFoundException):
     detail = 'Шаблон самолета не найден'
 
+class FlightInstanceNotFoundException(ObjectNotFoundException):
+    detail = 'Рейс не найден'
+
 class SameAirportException(AppBaseException):
     status_code = 400
     detail = 'Аэропорт вылета не может быть аэропортом прилета'
