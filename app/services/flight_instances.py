@@ -1,7 +1,7 @@
 from app.exceptions.base import SameAirportException, AirportNotFoundException, SeatTemplateNotFoundException, \
     FlightInstanceNotFoundException, ObjectNotFoundException
 from app.helpers.seat_status import SeatStatus
-from app.schemas.flight_instances import FlightInstanceCreate
+from app.schemas.flight_instances import FlightInstanceCreate, FlightInstanceStatusUpdate
 from app.schemas.seat_instanes_map import SeatMapShortResponse, FlightInstanceMapResponse
 from app.services.base import BaseService
 
@@ -66,3 +66,12 @@ class FlightInstancesService(BaseService):
             total_seats=len(seats),
             rows=seat_map,
         )
+
+    async def change_flight_instance_status(self, payload: FlightInstanceStatusUpdate, flight_instance_id: int):
+        try:
+            await self.db.flight_instances.edit(data=payload, id=flight_instance_id, map_res=False)
+            await self.db.session.commit()
+            return await self.get_flight_instance_or_404(flight_instance_id)
+
+        except ObjectNotFoundException:
+            raise FlightInstanceNotFoundException()

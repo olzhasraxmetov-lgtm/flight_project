@@ -4,7 +4,8 @@ from app.core.dependencies import DBDep
 from app.core.dependencies import admin_only
 from app.schemas.seat_instanes_map import FlightInstanceMapResponse
 from app.services.flight_instances import FlightInstancesService
-from app.schemas.flight_instances import FlightInstanceCreate, FlightInstanceResponse
+from app.schemas.flight_instances import FlightInstanceCreate, FlightInstanceResponse, FlightInstanceStatusUpdate
+
 router = APIRouter(
     prefix="/flight_instances",
     tags=["Вылеты по шаблону"]
@@ -29,3 +30,15 @@ async def create_flight_instance(
 )
 async def get_flight_instance_map(db: DBDep, instance_id: int):
     return await FlightInstancesService(db).get_flight_instance_map(instance_id)
+
+@router.patch(
+    "/{instance_id}/status",
+    summary='Изменить статус рейса',
+    dependencies=[admin_only],
+)
+async def change_flight_instance_status(
+        db: DBDep,
+        instance_id: int,
+        payload: FlightInstanceStatusUpdate
+):
+    return await FlightInstancesService(db).change_flight_instance_status(payload=payload, flight_instance_id=instance_id)

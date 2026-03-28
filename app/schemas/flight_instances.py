@@ -47,3 +47,6 @@ class FlightInstanceResponse(FlightInstanceBase):
     id: int
     departure_airport: AirportShort
     arrival_airport: AirportShort
+
+class FlightInstanceStatusUpdate(BaseModel):
+    status: FlightStatus
