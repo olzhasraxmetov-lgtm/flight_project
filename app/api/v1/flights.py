@@ -10,7 +10,7 @@ router = APIRouter(
     tags=["Вылеты"],
 )
 
-@router.get('', summary='Получить список вылетов', response_model=list[FlightResponse])
+@router.get('', summary='Получить список вылетов',dependencies=[admin_only], response_model=list[FlightResponse])
 async def get_paginated_flights(
     db: DBDep,
     pagination: PaginationDep,
@@ -25,14 +25,14 @@ async def create_flight(
 ):
     return await FlightsService(db).create_flight(payload)
 
-@router.get('/{flight_id}', summary='Получить рейс по ID', response_model=FlightResponse)
+@router.get('/{flight_id}', summary='Получить рейс по ID', dependencies=[admin_only], response_model=FlightResponse)
 async def get_flight_by_id(
         db: DBDep,
         flight_id: int,
 ):
     return await FlightsService(db).get_flight(flight_id)
 
-@router.delete('/{flight_id}', summary='Удалить рейс по ID', status_code=204)
+@router.delete('/{flight_id}', summary='Удалить рейс по ID', dependencies=[admin_only], status_code=204)
 async def get_flight_by_id(
         db: DBDep,
         flight_id: int,

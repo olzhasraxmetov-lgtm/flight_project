@@ -84,6 +84,10 @@ class FlightSearch(BaseModel):
             raise SameAirportException
 
         if self.date_from and self.date_to:
-            if self.date_from >= self.date_to:
+
+            if self.date_from.date() == self.date_to.date():
+                self.date_to = self.date_to.replace(hour=23, minute=59, second=59)
+
+            if self.date_from > self.date_to:
                 raise InvalidDateTimeException
         return self

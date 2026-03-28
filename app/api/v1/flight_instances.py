@@ -1,7 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
-from app.core.dependencies import DBDep
+from app.core.dependencies import DBDep, PaginationDep
 from app.core.dependencies import admin_only
+from app.schemas.flights import FlightSearch
 from app.schemas.seat_instanes_map import FlightInstanceMapResponse
 from app.services.flight_instances import FlightInstancesService
 from app.schemas.flight_instances import FlightInstanceCreate, FlightInstanceResponse, FlightInstanceStatusUpdate
@@ -10,6 +11,19 @@ router = APIRouter(
     prefix="/flight_instances",
     tags=["Вылеты по шаблону"]
 )
+
+@router.get(
+    "",
+    summary='Получить все рейсы',
+    response_model=list[FlightInstanceResponse],
+)
+async def get_paginated_flight_instances(
+        db: DBDep,
+        pagination: PaginationDep,
+        search_params: FlightSearch = Depends(),
+):
+    return await FlightInstancesService(db).get_paginated_flight_instances(search_params, pagination)
+
 
 @router.post(
     "",
