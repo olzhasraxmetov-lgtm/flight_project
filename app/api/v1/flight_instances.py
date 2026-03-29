@@ -40,7 +40,7 @@ async def create_flight_instance(
 @router.get(
     "/{instance_id}/seats",
     summary='Получить карту мест вылета по ID',
-    response_model=list[FlightInstanceMapResponse],
+    response_model=FlightInstanceMapResponse,
 )
 async def get_flight_instance_map(db: DBDep, instance_id: int):
     return await FlightInstancesService(db).get_flight_instance_map(instance_id)
@@ -49,6 +49,7 @@ async def get_flight_instance_map(db: DBDep, instance_id: int):
     "/{instance_id}/status",
     summary='Изменить статус рейса',
     dependencies=[admin_only],
+    response_model=FlightInstanceResponse
 )
 async def change_flight_instance_status(
         db: DBDep,
