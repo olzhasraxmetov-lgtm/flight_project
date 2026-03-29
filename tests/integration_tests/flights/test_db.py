@@ -1,4 +1,3 @@
-import pytest
 from sqlalchemy.orm import joinedload
 
 from app.models import FlightsORM
