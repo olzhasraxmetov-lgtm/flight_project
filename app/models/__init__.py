@@ -7,6 +7,7 @@ from .seat_templates import SeamTemplatesORM
 from .seat_template_seat import SeatTemplateSeatsORM
 from .flight_instances import FlightInstancesORM
 from .seat_instances_map import SeatInstancesMapORM
+from .bookings import BookingsORM
 
 
 __all__ = [
@@ -18,5 +19,6 @@ __all__ = [
     "SeamTemplatesORM",
     "SeatTemplateSeatsORM",
     "FlightInstancesORM",
-    "SeatInstancesMapORM"
+    "SeatInstancesMapORM",
+    "BookingsORM",
 ]
