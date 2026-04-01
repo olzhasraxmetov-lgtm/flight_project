@@ -1,0 +1,20 @@
+from decimal import Decimal
+
+from app.core.database import Base
+from sqlalchemy.orm import mapped_column, Mapped
+from sqlalchemy import String, ForeignKey, Numeric
+
+class PassengersORM(Base):
+    __tablename__ = "passengers"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    booking_id: Mapped[int] = mapped_column(ForeignKey("bookings.id"), nullable=False)
+    flight_instance_id: Mapped[int] = mapped_column(ForeignKey("flight_instances.id"), nullable=False)
+    seat_instance_id: Mapped[int] = mapped_column(ForeignKey("seat_instances_map.id"), nullable=False, unique=True)
+
+    first_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    last_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    passport_number: Mapped[str] = mapped_column(String(20), nullable=False)
+
+    price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
