@@ -48,3 +48,10 @@ class SameAirportException(AppBaseException):
     status_code = 400
     detail = 'Аэропорт вылета не может быть аэропортом прилета'
 
+class FlightNotAvailableForBookingException(AppBaseException):
+    status_code = 409
+    detail = "Рейс уже вылетел или отменен"
+
+class SeatsNotAvailableException(AppBaseException):
+    status_code = 409
+    detail = "Место уже занято или недоступно"

@@ -12,6 +12,12 @@ from app.schemas.seat_instanes_map import SeatMapShortResponse, FlightInstanceMa
 from app.services.base import BaseService
 
 class FlightInstancesService(BaseService):
+    async def validate_flight_for_booking(self, flight_instance_id: int):
+        flight = await self.db.flight_instances.get_one_or_none(id=flight_instance_id, map_res=False)
+        if not flight:
+            raise FlightInstanceNotFoundException()
+        return flight
+
     async def get_flight_instance_or_404(self, flight_instance_id: int):
         try:
             return await self.db.flight_instances.get_one_with_details(flight_instance_id)
