@@ -28,3 +28,25 @@ class BookingsORM(Base):
         back_populates="booking",
         cascade="all, delete-orphan",
     )
+
+    @property
+    def passengers_count(self) -> int:
+        return len(self.passengers) if self.passengers else 0
+
+    @property
+    def flight_number(self) -> str | None:
+        if self.passengers and self.passengers[0].flight_instance:
+            return self.passengers[0].flight_instance.flight_number
+        return None
+
+    @property
+    def departure_at(self):
+        if self.passengers and self.passengers[0].flight_instance:
+            return self.passengers[0].flight_instance.departure_at
+        return None
+
+    @property
+    def arrival_at(self):
+        if self.passengers and self.passengers[0].flight_instance:
+            return self.passengers[0].flight_instance.arrival_at
+        return None
