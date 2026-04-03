@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from app.exceptions.base import FlightNotAvailableForBookingException, SeatsNotAvailableException, \
-    BookingNotFoundException, ObjectNotFoundException
+    BookingNotFoundException, ObjectNotFoundException, PassengerNotFoundException
 from app.helpers.booking_status import BookingStatus
 from app.helpers.flight_status import FlightStatus
 from app.helpers.seat_status import SeatStatus
@@ -81,4 +81,25 @@ class BookingService(BaseService):
 
         await self.db.bookings.delete(id=booking_id)
         await self.db.commit()
-        return {"detail": "Booking deleted and seats released"}
+        return {"detail": "Бронирование успешно удалено"}
+
+    async def delete_passenger_in_booking(self, passenger_id: int, booking_id: int):
+        booking = await self.get_booking_or_404(booking_id)
+        if len(booking.passengers) == 1:
+            return await self.delete_booking_fully(booking_id)
+        passenger = next((p for p in booking.passengers if p.id == passenger_id), None)
+        if not passenger:
+            raise PassengerNotFoundException
+
+        await self.db.seat_instances_map.update_status([passenger.seat_instance_id], seat_status=SeatStatus.AVAILABLE)
+        booking.total_price -= passenger.price
+        booking.passengers.remove(passenger)
+
+        await self.db.session.flush()
+        await self.db.commit()
+        return {
+            "status": "success",
+            "message": f"Passenger {passenger_id} removed",
+            "new_total_price": booking.total_price
+        }
+

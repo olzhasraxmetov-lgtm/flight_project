@@ -47,6 +47,9 @@ class FlightInstanceNotFoundException(ObjectNotFoundException):
 class BookingNotFoundException(ObjectNotFoundException):
     detail = 'Бронирование не найдено'
 
+class PassengerNotFoundException(ObjectNotFoundException):
+    detail = 'Пассажир не найде'
+
 class SameAirportException(AppBaseException):
     status_code = 400
     detail = 'Аэропорт вылета не может быть аэропортом прилета'
