@@ -4,6 +4,7 @@ from app.exceptions.base import FlightNotAvailableForBookingException, SeatsNotA
     BookingNotFoundException, ObjectNotFoundException
 from app.helpers.booking_status import BookingStatus
 from app.helpers.flight_status import FlightStatus
+from app.helpers.seat_status import SeatStatus
 from app.schemas.bookings import BookingCreateRequest, BookingInternalCreate, \
     PassengerInternalCreateRequest, MyBookingsResponse
 from app.services.base import BaseService
@@ -13,6 +14,11 @@ from app.utils.pnr_generator import generate_pnr_identifier
 
 class BookingService(BaseService):
 
+    async def get_booking_or_404(self, booking_id: int):
+        try:
+            return await self.db.bookings.get_booking_with_passengers(booking_id)
+        except ObjectNotFoundException:
+            raise BookingNotFoundException
 
     async def create_booking(
         self,
@@ -56,7 +62,7 @@ class BookingService(BaseService):
         ]
 
         await self.db.passengers.add_bulk(passengers)
-        await self.db.seat_instances_map.mark_as_booked(seat_ids)
+        await self.db.seat_instances_map.update_status(seat_ids, seat_status=SeatStatus.RESERVED)
         await self.db.commit()
 
         return await self.db.bookings.get_booking_with_passengers(booking_id=new_booking.id)
@@ -65,7 +71,14 @@ class BookingService(BaseService):
         return await self.db.bookings.get_user_bookings(user_id)
 
     async def get_booking(self, booking_id: int):
-        try:
-            return await self.db.bookings.get_booking_with_passengers(booking_id)
-        except ObjectNotFoundException:
-            raise BookingNotFoundException
+         return await self.get_booking_or_404(booking_id)
+
+    async def delete_booking_fully(self, booking_id: int):
+        booking = await self.get_booking_or_404(booking_id)
+        seat_ids = [p.seat_instance_id for p in booking.passengers]
+        if seat_ids:
+         await self.db.seat_instances_map.update_status(seat_ids, seat_status=SeatStatus.AVAILABLE)
+
+        await self.db.bookings.delete(id=booking_id)
+        await self.db.commit()
+        return {"detail": "Booking deleted and seats released"}

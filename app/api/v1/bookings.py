@@ -32,3 +32,11 @@ async def get_booking_detail_by_id(
         booking_id: int,
 ):
     return await BookingService(db).get_booking(booking_id=booking_id)
+
+@router.delete("/{booking_id}", summary="Отменить бронь полностью")
+async def delete_booking(
+        db: DBDep,
+        user: CurrentUser,
+        booking_id: int,
+):
+    return await BookingService(db).delete_booking_fully(booking_id=booking_id)
