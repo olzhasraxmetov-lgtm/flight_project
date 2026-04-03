@@ -9,7 +9,7 @@ class PassengersORM(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    booking_id: Mapped[int] = mapped_column(ForeignKey("bookings.id"), nullable=False)
+    booking_id: Mapped[int] = mapped_column(ForeignKey("bookings.id", ondelete="CASCADE"), nullable=False)
     flight_instance_id: Mapped[int] = mapped_column(ForeignKey("flight_instances.id"), nullable=False)
     seat_instance_id: Mapped[int] = mapped_column(ForeignKey("seat_instances_map.id"), nullable=False, unique=True)
 

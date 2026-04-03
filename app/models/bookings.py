@@ -27,6 +27,7 @@ class BookingsORM(Base):
         "PassengersORM",
         back_populates="booking",
         cascade="all, delete-orphan",
+        passive_deletes=True
     )
 
     @property

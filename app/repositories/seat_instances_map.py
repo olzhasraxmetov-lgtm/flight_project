@@ -1,6 +1,5 @@
 from sqlalchemy import select, update
 
-from app.exceptions.base import SeatsNotAvailableException
 from app.mappers.seat_instances_map import SeatInstancesMapMapper
 from app.repositories.base import BaseRepository
 from app.models.seat_instances_map import SeatInstancesMapORM
@@ -23,11 +22,13 @@ class SeatInstancesMapRepository(BaseRepository):
 
         return found_seats
 
-    async def mark_as_booked(self, seat_ids: list[int]):
+    async def update_status(self, seat_ids: list[int], seat_status: SeatStatus):
+        if not seat_ids:
+            return
         query = (
             update(self.model)
             .where(self.model.id.in_(seat_ids))
-            .values(status=SeatStatus.RESERVED)
+            .values(status=seat_status)
         )
         await self.session.execute(query)
 
