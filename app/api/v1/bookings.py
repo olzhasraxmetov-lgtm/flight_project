@@ -24,3 +24,11 @@ async def get_my_bookings(
         user: CurrentUser
 ):
     return await BookingService(db).get_my_bookings(user_id=user.id)
+
+@router.get("/{booking_id}", summary="Получить детальную информацию о бронирований", response_model=BookingFullResponse)
+async def get_booking_detail_by_id(
+        db: DBDep,
+        user: CurrentUser,
+        booking_id: int,
+):
+    return await BookingService(db).get_booking(booking_id=booking_id)

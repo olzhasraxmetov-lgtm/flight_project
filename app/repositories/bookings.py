@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
+from app.exceptions.base import BookingNotFoundException, ObjectNotFoundException
 from app.mappers.bookings import BookingMapper
 from app.repositories.base import BaseRepository
 from app.models.bookings import BookingsORM
@@ -15,12 +16,14 @@ class BookingsRepository(BaseRepository):
             select(self.model)
             .where(self.model.id == booking_id)
             .options(
-                selectinload(self.model.passengers)
-                .joinedload(PassengersORM.flight_instance)
+                selectinload(self.model.passengers),
+                selectinload(self.model.passengers).joinedload(PassengersORM.flight_instance)
             )
         )
         result = await self.session.execute(query)
-        full_booking = result.unique().scalar_one()
+        full_booking = result.unique().scalar_one_or_none()
+        if not full_booking:
+            raise ObjectNotFoundException
         return full_booking
 
     async def get_user_bookings(self, user_id: int):

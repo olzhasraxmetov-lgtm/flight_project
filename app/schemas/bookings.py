@@ -45,15 +45,9 @@ class FlightBriefResponse(BaseModel):
 class BookingFullResponse(BaseModel):
     id: int
     user_id: int
-    flight_number: str = Field(
-        validation_alias=AliasPath("passengers", 0, "flight_instance", "flight_number"),
-    )
-    departure_at: datetime = Field(
-        validation_alias=AliasPath("passengers", 0, "flight_instance", "departure_at")
-    )
-    arrival_at: datetime = Field(
-        validation_alias=AliasPath("passengers", 0, "flight_instance", "arrival_at")
-    )
+    flight_number: str
+    departure_at: datetime
+    arrival_at: datetime
     booking_reference: str
     total_price: Decimal
     status: BookingStatus

@@ -44,6 +44,9 @@ class SeatTemplateNotFoundException(ObjectNotFoundException):
 class FlightInstanceNotFoundException(ObjectNotFoundException):
     detail = 'Рейс не найден'
 
+class BookingNotFoundException(ObjectNotFoundException):
+    detail = 'Бронирование не найдено'
+
 class SameAirportException(AppBaseException):
     status_code = 400
     detail = 'Аэропорт вылета не может быть аэропортом прилета'
