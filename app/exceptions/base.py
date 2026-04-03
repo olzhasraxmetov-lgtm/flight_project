@@ -5,6 +5,9 @@ class AppBaseException(Exception):
     def __init__(self, *args, **kwargs):
         super().__init__(self.detail, *args, **kwargs)
 
+class ForbiddenBookingException(AppBaseException):
+    detail = "У вас нет прав для редактирования этого бронирования"
+    status_code = 403
 
 class ObjectNotFoundException(AppBaseException):
     detail = "Объект не найден"

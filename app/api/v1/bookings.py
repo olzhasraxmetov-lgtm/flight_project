@@ -48,4 +48,8 @@ async def delete_passenger_in_booking(
         booking_id: int,
         passenger_id: int,
 ):
-    return await BookingService(db).delete_passenger_in_booking(booking_id=booking_id, passenger_id=passenger_id)
+    return await BookingService(db).delete_passenger_in_booking(
+        booking_id=booking_id,
+        passenger_id=passenger_id,
+        user_id=user.id
+    )
