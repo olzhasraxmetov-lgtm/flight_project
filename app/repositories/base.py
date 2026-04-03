@@ -59,12 +59,14 @@ class BaseRepository:
             for item in result.unique().scalars().all()
         ]
 
-    async def get_one_or_none(self, **filter_by):
+    async def get_one_or_none(self, map_res: bool = True, **filter_by):
         query = select(self.model).filter_by(**filter_by)
         result = await self.session.execute(query)
         model = result.scalars().one_or_none()
         if model is None:
             return None
+        if not map_res:
+            return model
         return self.mapper.map_to_domain_entity(model)
 
     async def get_one(self, map_res: bool = True, **filter_by):
@@ -106,6 +108,9 @@ class BaseRepository:
             result = await self.session.execute(add_stmt)
 
             models = result.scalars().all()
+
+            if self.mapper is None:
+                return models
 
             return [self.mapper.map_to_domain_entity(m) for m in models]
 
