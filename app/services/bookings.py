@@ -4,7 +4,7 @@ from app.exceptions.base import FlightNotAvailableForBookingException, SeatsNotA
 from app.helpers.booking_status import BookingStatus
 from app.helpers.flight_status import FlightStatus
 from app.schemas.bookings import BookingCreateRequest, BookingInternalCreate, \
-    PassengerInternalCreateRequest
+    PassengerInternalCreateRequest, MyBookingsResponse
 from app.services.base import BaseService
 from app.services.flight_instances import FlightInstancesService
 
@@ -59,3 +59,24 @@ class BookingService(BaseService):
         await self.db.commit()
 
         return await self.db.bookings.get_booking_with_passengers(booking_id=new_booking.id)
+
+    async def get_my_bookings(self, user_id: int) -> list[MyBookingsResponse]:
+        bookings_orm = await self.db.bookings.get_user_bookings(user_id)
+
+        result = []
+        for b in bookings_orm:
+            first_p = b.passengers[0] if b.passengers else None
+            f_inst = first_p.flight_instance if first_p else None
+
+            result.append(MyBookingsResponse(
+                id=b.id,
+                booking_reference=b.booking_reference,
+                total_price=b.total_price,
+                status=b.status,
+                created_at=b.created_at,
+                flight_number=f_inst.flight_number if f_inst else None,
+                departure_at=f_inst.departure_at if f_inst else None,
+                arrival_at=f_inst.arrival_at if f_inst else None,
+                passengers_count=len(b.passengers)
+            ))
+        return result

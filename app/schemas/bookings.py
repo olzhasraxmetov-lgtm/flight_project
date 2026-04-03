@@ -61,3 +61,18 @@ class BookingFullResponse(BaseModel):
     passengers: list[PassengerShortResponse]
 
     created_at: datetime
+
+
+class MyBookingsResponse(BaseModel):
+    id: int
+    booking_reference: str
+    flight_number: str | None = None
+    departure_at: datetime | None = None
+    arrival_at: datetime | None = None
+
+    total_price: Decimal
+    status: BookingStatus
+
+    passengers_count: int = 0
+
+    created_at: datetime
