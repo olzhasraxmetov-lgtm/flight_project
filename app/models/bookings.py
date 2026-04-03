@@ -22,3 +22,9 @@ class BookingsORM(Base):
     )
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    passengers: Mapped[list["PassengersORM"]] = relationship(
+        "PassengersORM",
+        back_populates="booking",
+        cascade="all, delete-orphan",
+    )

@@ -36,6 +36,11 @@ class FlightInstancesORM(Base):
         back_populates='arrival_instances',
     )
 
+    passengers: Mapped[list["PassengersORM"]] = relationship(
+        "PassengersORM",
+        back_populates="flight_instance"
+    )
+
     __table_args__ = (
         Index("ix_flight_instances_departure_at", "departure_at"),
         Index("ix_flight_instances_arrival_at", "arrival_at"),

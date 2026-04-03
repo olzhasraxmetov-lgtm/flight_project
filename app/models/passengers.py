@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from app.core.database import Base
-from sqlalchemy.orm import mapped_column, Mapped
+from sqlalchemy.orm import mapped_column, Mapped, relationship
 from sqlalchemy import String, ForeignKey, Numeric
 
 class PassengersORM(Base):
@@ -18,3 +18,13 @@ class PassengersORM(Base):
     passport_number: Mapped[str] = mapped_column(String(20), nullable=False)
 
     price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+
+    booking: Mapped["BookingsORM"] = relationship(
+        "BookingsORM",
+        back_populates="passengers",
+    )
+
+    flight_instance: Mapped["FlightInstancesORM"] = relationship(
+        "FlightInstancesORM",
+        back_populates="passengers",
+    )
