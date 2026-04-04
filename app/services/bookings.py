@@ -93,7 +93,7 @@ class BookingService(BaseService):
     async def delete_passenger_in_booking(self, passenger_id: int, booking_id: int, user_id: int):
         booking = await self.get_booking_or_404(booking_id)
         if booking.user_id != user_id:
-            logger.warning(f"Booking deleted", booking_id=booking_id)
+            logger.warning(f"Forbidden access attempt", booking_id=booking_id, user_id=user_id)
             raise ForbiddenBookingException
         if len(booking.passengers) == 1:
             return await self.delete_booking_fully(booking_id)
