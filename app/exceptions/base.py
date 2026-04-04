@@ -51,7 +51,7 @@ class BookingNotFoundException(ObjectNotFoundException):
     detail = 'Бронирование не найдено'
 
 class PassengerNotFoundException(ObjectNotFoundException):
-    detail = 'Пассажир не найде'
+    detail = 'Пассажир не найден'
 
 class SameAirportException(AppBaseException):
     status_code = 400
