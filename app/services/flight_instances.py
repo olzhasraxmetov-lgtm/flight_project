@@ -1,5 +1,6 @@
 from datetime import datetime, time
 
+from loguru import logger
 from sqlalchemy.orm import joinedload
 import zoneinfo
 from app.exceptions.base import SameAirportException, AirportNotFoundException, SeatTemplateNotFoundException, \
@@ -15,6 +16,7 @@ class FlightInstancesService(BaseService):
     async def validate_flight_for_booking(self, flight_instance_id: int):
         flight = await self.db.flight_instances.get_one_or_none(id=flight_instance_id, map_res=False)
         if not flight:
+            logger.warning("Flight instance not found", flight_instance_id=flight_instance_id)
             raise FlightInstanceNotFoundException()
         return flight
 
@@ -101,6 +103,8 @@ class FlightInstancesService(BaseService):
         await self.db.seat_instances_map.add_bulk(seats_to_create)
 
         await self.db.session.commit()
+        logger.info(f"Flight instance created successfully",
+                    updated_data=payload.model_dump(exclude_unset=True, mode="json"))
         return await self.db.flight_instances.get_one_with_details(flight_instance.id)
 
     async def get_flight_instance_map(self, flight_instance_id: int):
@@ -129,7 +133,8 @@ class FlightInstancesService(BaseService):
         try:
             await self.db.flight_instances.edit(data=payload, id=flight_instance_id, map_res=False)
             await self.db.session.commit()
+            logger.info(f"Flight instance created successfully",
+                        new_status=payload.model_dump(exclude_unset=True, mode="json"))
             return await self.get_flight_instance_or_404(flight_instance_id)
-
         except ObjectNotFoundException:
             raise FlightInstanceNotFoundException()

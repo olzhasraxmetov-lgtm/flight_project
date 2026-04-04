@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from loguru import logger
 from sqlalchemy.sql.functions import current_user
 
 from app.exceptions.base import FlightNotAvailableForBookingException, SeatsNotAvailableException, \
@@ -20,6 +21,7 @@ class BookingService(BaseService):
         try:
             return await self.db.bookings.get_booking_with_passengers(booking_id)
         except ObjectNotFoundException:
+            logger.warning(f"Booking not found", booking_id=booking_id)
             raise BookingNotFoundException
 
     async def create_booking(
@@ -66,6 +68,8 @@ class BookingService(BaseService):
         await self.db.passengers.add_bulk(passengers)
         await self.db.seat_instances_map.update_status(seat_ids, seat_status=SeatStatus.RESERVED)
         await self.db.commit()
+        logger.info(f"Booking created",
+                    updated_data=payload.model_dump(exclude_unset=True, mode="json"))
 
         return await self.db.bookings.get_booking_with_passengers(booking_id=new_booking.id)
 
@@ -83,16 +87,19 @@ class BookingService(BaseService):
 
         await self.db.bookings.delete(id=booking_id)
         await self.db.commit()
+        logger.info(f"Booking deleted",booking_id=booking_id)
         return {"detail": "Бронирование успешно удалено"}
 
     async def delete_passenger_in_booking(self, passenger_id: int, booking_id: int, user_id: int):
         booking = await self.get_booking_or_404(booking_id)
         if booking.user_id != user_id:
+            logger.warning(f"Booking deleted", booking_id=booking_id)
             raise ForbiddenBookingException
         if len(booking.passengers) == 1:
             return await self.delete_booking_fully(booking_id)
         passenger = next((p for p in booking.passengers if p.id == passenger_id), None)
         if not passenger:
+            logger.warning(f"Passenger not found", booking_id=booking_id, passenger_id=passenger_id)
             raise PassengerNotFoundException
 
         await self.db.seat_instances_map.update_status([passenger.seat_instance_id], seat_status=SeatStatus.AVAILABLE)
@@ -101,6 +108,7 @@ class BookingService(BaseService):
 
         await self.db.session.flush()
         await self.db.commit()
+        logger.info(f"Passenger deleted", booking_id=booking_id, passenger_id=passenger_id, new_count_passengers=len(booking.passengers))
         return {
             "status": "success",
             "message": f"Passenger {passenger_id} removed",
