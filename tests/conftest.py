@@ -56,6 +56,14 @@ async def auth_user(registered_user, ac):
     del app.dependency_overrides[get_current_user]
 
 @pytest.fixture(scope="function")
+async def user_forbidden(simple_user_forbidden, ac):
+    app.dependency_overrides[get_current_user] = lambda: simple_user_forbidden
+
+    yield ac
+
+    del app.dependency_overrides[get_current_user]
+
+@pytest.fixture(scope="function")
 async def admin_user(registered_admin, ac):
     app.dependency_overrides[get_current_user] = lambda: registered_admin
 
