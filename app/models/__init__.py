@@ -9,6 +9,7 @@ from .flight_instances import FlightInstancesORM
 from .seat_instances_map import SeatInstancesMapORM
 from .bookings import BookingsORM
 from .passengers import PassengersORM
+from .payments import PaymentsORM
 
 
 __all__ = [
@@ -23,4 +24,5 @@ __all__ = [
     "SeatInstancesMapORM",
     "BookingsORM",
     "PassengersORM",
+    "PaymentsORM",
 ]

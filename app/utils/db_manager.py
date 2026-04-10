@@ -9,6 +9,7 @@ from app.repositories.flight_instances import FlightInstancesRepository
 from app.repositories.seat_instances_map import SeatInstancesMapRepository
 from app.repositories.bookings import BookingsRepository
 from app.repositories.passengers import PassengersRepository
+from app.repositories.payments import PaymentsRepository
 
 class DBManager:
     def __init__(self, session_factory):
@@ -28,6 +29,7 @@ class DBManager:
         self.seat_instances_map = SeatInstancesMapRepository(self.session)
         self.bookings = BookingsRepository(self.session)
         self.passengers = PassengersRepository(self.session)
+        self.payments = PaymentsRepository(self.session)
 
 
         return self
