@@ -18,9 +18,16 @@ class Settings(BaseSettings):
     YOOKASSA_API_SECRET_KEY: str
     YOOKASSA_RETURN_URL: str
 
+    REDIS_HOST: str
+    REDIS_PORT: int
+
     APP_NAME: str = 'Flight API Project'
     APP_DESCRIPTION: str = 'Flight API Project'
     APP_VERSION: str = '0.0.1'
+
+    @property
+    def REDIS_URL(self):
+        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}"
 
     model_config = SettingsConfigDict(
         env_file='.env',
