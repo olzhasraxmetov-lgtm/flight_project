@@ -1,7 +1,9 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-class PaymentBase(BaseModel):
-    pass
+from app.helpers.payment_status import PaymentStatus
 
 class PaymentResponse(BaseModel):
-    pass
+    transaction_id: str
+    status: PaymentStatus
+    id: int
+    booking_id: int

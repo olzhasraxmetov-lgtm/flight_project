@@ -25,6 +25,11 @@ class UserAlreadyExistException(AppBaseException):
     detail = 'Пользователь уже существует'
     status_code = 409
 
+class BookingAlreadyPaidException(AppBaseException):
+    detail = 'Ваш заказ уже оплачен'
+    status_code = 409
+
+
 class IncorrectPasswordException(AppBaseException):
     detail = 'Неверный пароль'
     status_code = 401
@@ -49,6 +54,9 @@ class FlightInstanceNotFoundException(ObjectNotFoundException):
 
 class BookingNotFoundException(ObjectNotFoundException):
     detail = 'Бронирование не найдено'
+
+class PaymentNotFoundException(ObjectNotFoundException):
+    detail = 'Оплата не найдена'
 
 class PassengerNotFoundException(ObjectNotFoundException):
     detail = 'Пассажир не найден'
