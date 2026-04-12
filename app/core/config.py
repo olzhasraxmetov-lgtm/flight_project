@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
 
+    YOOKASSA_SHOP_ID: str
+    YOOKASSA_API_SECRET_KEY: str
+    YOOKASSA_RETURN_URL: str
 
     APP_NAME: str = 'Flight API Project'
     APP_DESCRIPTION: str = 'Flight API Project'
