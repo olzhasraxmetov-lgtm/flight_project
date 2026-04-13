@@ -1,0 +1,33 @@
+<html>
+<body>
+    <h2>Здравствуйте, {{ booking.passengers[0].first_name }}!</h2>
+    <p>Ваше бронирование <strong>{{ booking.booking_reference }}</strong> успешно подтверждено и оплачено.</p>
+
+    <h3>Детали полета:</h3>
+    <ul>
+        <li>Сумма: {{ "{:,.2f}".format(booking.total_price) }} руб.</li>
+    </ul>
+    {% if booking.passengers and booking.passengers[0].flight_instance %}
+    {% set flight = booking.passengers[0].flight_instance %}
+        <div class="details">
+            <h3>Детали вашего маршрута:</h3>
+            <ul>
+                <li><strong>Рейс:</strong> {{ flight.flight_number }}</li>
+
+                {# Обращаемся к вложенным объектам аэропортов #}
+                <li><strong>Откуда:</strong>
+                    {{ flight.departure_airport.city }} ({{ flight.departure_airport.name }})
+                </li>
+                <li><strong>Куда:</strong>
+                    {{ flight.arrival_airport.city }} ({{ flight.arrival_airport.name }})
+                </li>
+
+                {# Форматируем дату вылета #}
+                <li><strong>Вылет:</strong> {{ flight.departure_at.strftime('%d.%m.%Y %H:%M') }}</li>
+            </ul>
+        </div>
+    {% endif %}
+
+    <p>Спасибо, что выбрали flight_app!</p>
+</body>
+</html>

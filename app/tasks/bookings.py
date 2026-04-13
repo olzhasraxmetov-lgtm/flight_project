@@ -7,7 +7,7 @@ from app.tasks.celery_app import celery_app
 import asyncio
 from app.repositories.bookings import BookingsRepository
 
-@celery_app.task(name="cleanup_expired_bookings")
+@celery_app.task(name="bookings:cleanup_expired_bookings")
 def cleanup_expired_bookings():
     async def _logic():
 

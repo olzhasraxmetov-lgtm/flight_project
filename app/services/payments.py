@@ -5,7 +5,7 @@ from uuid import uuid4
 from anyio import to_thread
 from loguru import logger
 from sqlalchemy.exc import SQLAlchemyError
-
+from app.tasks.emails import send_email_after_payment
 from app.core.dependencies import DBDep
 from app.exceptions.base import BookingAlreadyPaidException, ForbiddenBookingException, ObjectNotFoundException, \
     BookingNotFoundException, PaymentNotFoundException
@@ -133,6 +133,7 @@ class PaymentsService(BaseService):
                 try:
                     booking = await self.db.bookings.get_booking_with_passengers(booking_id=payment.booking_id)
                     booking.status = BookingStatus.CONFIRMED
+                    send_email_after_payment.delay(payment.booking_id)
                     logger.info(
                         "Payment and booking confirmed via webhook",
                         transaction_id=transaction_id,
