@@ -1,11 +1,12 @@
 from datetime import datetime, timezone, timedelta
 
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, raiseload, joinedload
 
-from app.exceptions.base import BookingNotFoundException, ObjectNotFoundException
+from app.exceptions.base import ObjectNotFoundException
 from app.helpers.booking_status import BookingStatus
 from app.mappers.bookings import BookingMapper
+from app.models import FlightInstancesORM
 from app.repositories.base import BaseRepository
 from app.models.bookings import BookingsORM
 from app.models.passengers import PassengersORM
@@ -13,6 +14,28 @@ from app.models.passengers import PassengersORM
 class BookingsRepository(BaseRepository):
     model = BookingsORM
     mapper = BookingMapper
+
+    async def get_booking_for_email(self, booking_id: int):
+        query = (
+            select(self.model)
+            .where(self.model.id == booking_id)
+            .options(
+                joinedload(self.model.user),
+                selectinload(self.model.passengers)
+                .joinedload(PassengersORM.flight_instance)
+                .joinedload(FlightInstancesORM.departure_airport),
+
+                selectinload(self.model.passengers)
+                .joinedload(PassengersORM.flight_instance)
+                .joinedload(FlightInstancesORM.arrival_airport),
+                raiseload("*")
+            )
+        )
+        result = await self.session.execute(query)
+        full_booking = result.unique().scalar_one_or_none()
+        if not full_booking:
+            raise ObjectNotFoundException
+        return full_booking
 
     async def get_booking_with_passengers(self, booking_id: int):
         query = (

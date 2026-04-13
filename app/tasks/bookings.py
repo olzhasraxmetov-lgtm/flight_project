@@ -1,15 +1,16 @@
 from loguru import logger
 
 from app.core.database import get_async_session_null_pool
+
 from app.helpers.booking_status import BookingStatus
 from app.tasks.celery_app import celery_app
 import asyncio
-
+from app.repositories.bookings import BookingsRepository
 
 @celery_app.task(name="cleanup_expired_bookings")
 def cleanup_expired_bookings():
     async def _logic():
-        from app.repositories.bookings import BookingsRepository
+
 
         async with get_async_session_null_pool() as session:
             repo = BookingsRepository(session)
@@ -25,3 +26,4 @@ def cleanup_expired_bookings():
             await session.commit()
             logger.info(f"Successfully cancelled {len(expired_bookings)} bookings")
     return asyncio.run(_logic())
+

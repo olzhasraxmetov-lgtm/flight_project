@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from app.core.database import Base
-from sqlalchemy.orm import mapped_column, Mapped
+from sqlalchemy.orm import mapped_column, Mapped, relationship
 from sqlalchemy import String, DateTime, func
 from app.helpers.users_role import UserRoleEnum
 
@@ -15,3 +15,9 @@ class UsersORM(Base):
     phone: Mapped[str] = mapped_column(String(50), unique=True)
     role: Mapped[str] = mapped_column(String(50), default=UserRoleEnum.USER, server_default="user", nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+
+    bookings: Mapped[list["BookingsORM"]] = relationship(
+        "BookingsORM",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
