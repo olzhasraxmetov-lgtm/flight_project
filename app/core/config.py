@@ -18,6 +18,11 @@ class Settings(BaseSettings):
     YOOKASSA_API_SECRET_KEY: str
     YOOKASSA_RETURN_URL: str
 
+    SMTP_HOST: str
+    SMTP_PORT: str
+    SMTP_USER: str
+    SMTP_PASS: str
+
     REDIS_HOST: str
     REDIS_PORT: int
 
