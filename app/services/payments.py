@@ -113,12 +113,12 @@ class PaymentsService(BaseService):
             booking_id=booking_id,
             transaction_id=new_payment.id
         )
-        return payment_data["confirmation_url"]
+        return {"url": payment_data["confirmation_url"]}
 
-    async def handle_webhook(self, transaction_id: str, status: str):
-        logger.info("Processing webhook", transaction_id=transaction_id, status=status)
+    async def handle_webhook(self, booking_id: int, status: str):
+        logger.info("Processing webhook", booking_id=booking_id, status=status)
         try:
-            payment = await self.db.payments.get_one(transaction_id=transaction_id)
+            payment = await self.db.payments.get_one(booking_id=booking_id)
         except ObjectNotFoundException:
             raise PaymentNotFoundException
 
@@ -128,7 +128,7 @@ class PaymentsService(BaseService):
             if status_str == "succeeded":
                 await self.db.payments.edit(
                     data={"status": PaymentStatus.SUCCEEDED},
-                    transaction_id=transaction_id,
+                    booking_id=booking_id,
                 )
                 try:
                     booking = await self.db.bookings.get_booking_with_passengers(booking_id=payment.booking_id)
@@ -136,7 +136,6 @@ class PaymentsService(BaseService):
                     send_email_after_payment.delay(payment.booking_id)
                     logger.info(
                         "Payment and booking confirmed via webhook",
-                        transaction_id=transaction_id,
                         booking_id=payment.booking_id
                     )
                 except ObjectNotFoundException:
@@ -146,11 +145,11 @@ class PaymentsService(BaseService):
             elif status_str in ["canceled", "failed"]:
                 await self.db.payments.edit(
                     data={"status": PaymentStatus.FAILED},
-                    transaction_id=transaction_id,
+                    id=payment.id,
                 )
                 logger.warning(
                     "Payment failed via webhook",
-                    transaction_id=transaction_id,
+                    booking_id=booking_id,
                     status=status_str
                 )
             await self.db.commit()
@@ -165,13 +164,15 @@ class PaymentsService(BaseService):
         try:
             notification_object = WebhookNotificationFactory().create(event_data)
             payment_object = notification_object.object
+
+            booking_id = payment_object.metadata.get("booking_id")
         except Exception as e:
             logger.error(f"Webhook parsing error: {e}")
             return {"status": "error", "message": "Invalid data"}
 
         await self.handle_webhook(
-            transaction_id=payment_object.id,
-            status=payment_object.status
+            status=payment_object.status,
+            booking_id = int(booking_id) if booking_id else None
         )
         logger.info("Webhook handled successfully", transaction_id=payment_object.id)
         return {"status": "ok"}
