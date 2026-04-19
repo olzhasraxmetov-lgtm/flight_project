@@ -2,7 +2,7 @@ import pytest
 from typing import AsyncGenerator
 
 from httpx import AsyncClient, ASGITransport
-
+from unittest.mock import patch
 from app.core.config import settings
 from app.core.database import async_session_maker_null_poll, engine_null_pool, Base
 from app.utils.db_manager import DBManager
@@ -19,6 +19,7 @@ pytest_plugins = [
     "tests.fixtures.seat_templates_seats",
     "tests.fixtures.flight_instances",
     "tests.fixtures.bookings",
+    "tests.fixtures.payments",
 ]
 
 @pytest.fixture(scope="session", autouse=True)
@@ -70,3 +71,10 @@ async def admin_user(registered_admin, ac):
     yield ac
 
     del app.dependency_overrides[get_current_user]
+
+@pytest.fixture
+def mock_email_task():
+    """Глобальный мок для задачи отправки письма."""
+    path = "app.tasks.emails.send_email_after_payment.delay"
+    with patch(path) as mock:
+        yield mock
