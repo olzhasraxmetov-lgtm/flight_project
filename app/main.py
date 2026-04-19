@@ -13,6 +13,7 @@ from app.api.v1.seat_template_seats import router as seat_template_seats_router
 from app.api.v1.flight_instances import router as flight_instance_router
 from app.api.v1.bookings import router as booking_router
 from app.api.v1.payments import router as payment_router
+from app.api.v1.payments import webhook_router
 from app.helpers.exception_handler import add_exception_handler
 app = FastAPI(
     title=settings.APP_NAME,
@@ -31,6 +32,7 @@ app.include_router(seat_template_seats_router)
 app.include_router(flight_instance_router)
 app.include_router(booking_router)
 app.include_router(payment_router)
+app.include_router(webhook_router)
 @app.get('/', include_in_schema=False)
 async def root():
     """

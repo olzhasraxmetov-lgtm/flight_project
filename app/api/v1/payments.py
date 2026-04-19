@@ -8,7 +8,7 @@ router = APIRouter(
     tags=["Оплата"],
 )
 
-@router.post('', summary='Оплатить бронь')
+@router.post('/{booking_id}', summary='Оплатить бронь')
 async def pay_booking(
     db: DBDep,
     booking_id: int,
@@ -31,7 +31,9 @@ async def payment_success_page(
         secret_key=settings.YOOKASSA_API_SECRET_KEY
     ).handle_payment_status(payment_id)
 
-@router.post('/webhook',
+webhook_router = APIRouter(prefix="/webhooks", tags=["Webhooks"])
+
+@webhook_router.post('/yookassa',
                       summary="Обработка уведомлений от ЮKassa",
                       description="Принимает POST-запросы от платежной системы при изменении статуса платежа"
                       )
