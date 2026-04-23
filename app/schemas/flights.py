@@ -9,13 +9,25 @@ from app.exceptions.base import SameAirportException
 from app.schemas.airports import AirportShort
 from app.schemas.airlines import AirlineShort
 
+from datetime import datetime
+from typing import Any
+from pydantic import field_validator
+
 
 class DateParseMixin:
     @field_validator("departure_at", "arrival_at", mode="before")
     @classmethod
     def parse_datetime(cls, value: Any) -> Any:
+        if isinstance(value, datetime):
+            return value
+
         if not isinstance(value, str):
             return value
+
+        try:
+            return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except (ValueError, TypeError):
+            pass
 
         formats = [
             "%d.%m.%Y %H:%M",
@@ -30,7 +42,8 @@ class DateParseMixin:
                 continue
 
         raise ValueError(
-            f"Неверный формат даты. Ожидалось: {', '.join(formats)}"
+            f"Неверный формат даты '{value}'. "
+            f"Ожидалось: ISO (YYYY-MM-DDTHH:MM:SSZ) или {', '.join(formats)}"
         )
 
 class FlightBase(BaseModel):
