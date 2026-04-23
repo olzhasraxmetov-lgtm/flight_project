@@ -3,7 +3,7 @@ from sqlalchemy.orm import joinedload
 from app.models import FlightsORM
 
 
-async def test_flights_pagination_logic(db, flight_factory):
+async def test_flights_pagination_logic(db, flight_factory, init_cache):
     await flight_factory(count=15)
 
     options = [
@@ -22,10 +22,10 @@ async def test_flights_pagination_logic(db, flight_factory):
     assert len(page_3) == 0
 
 
-async def test_pagination_page_two(flight_factory, ac):
+async def test_pagination_page_two(flight_factory, admin_user):
     await flight_factory(count=15)
 
-    response = await ac.get("/flights", params={"page": 2, "per_page": 10})
+    response = await admin_user.get("/flights", params={"page": 2, "per_page": 10})
 
     assert len(response.json()) == 5
 

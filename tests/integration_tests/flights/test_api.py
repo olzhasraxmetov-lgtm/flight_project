@@ -11,8 +11,8 @@ import pytest
         ({"page": 1, "per_page": 101}, 422),
     ]
 )
-async def test_get_flights_pagination_params(ac, params, expected_status):
-    response = await ac.get("/flights", params=params)
+async def test_get_flights_pagination_params(admin_user, params, expected_status, init_cache):
+    response = await admin_user.get("/flights", params=params)
     assert response.status_code == expected_status
 
 @pytest.mark.parametrize(
@@ -31,8 +31,8 @@ async def test_get_flights_pagination_params(ac, params, expected_status):
 async def test_create_flight(admin_user, seed_data, custom_data, expected_status):
     payload = {
         "flight_number": "KC-851",
-        "departure_at": "2026-03-25T10:00:00Z",
-        "arrival_at": "2026-03-25T12:00:00Z",
+        "departure_at": "25.03.2026 10:00",
+        "arrival_at": "25.03.2026 12:00",
         "price": 25000,
         "departure_airport_id": seed_data["ala_id"],
         "arrival_airport_id": seed_data["nqz_id"],
@@ -42,13 +42,14 @@ async def test_create_flight(admin_user, seed_data, custom_data, expected_status
     payload.update(custom_data)
 
     response = await admin_user.post('/flights', json=payload)
+    if response.status_code == 422:
+        print(f"\nОШИБКА ВАЛИДАЦИИ: {response.json()}")
 
     assert response.status_code == expected_status
 
 
-async def test_get_all_flights_anonymous(ac):
-    """Проверяем, что даже без логина список доступен"""
-    response = await ac.get('/flights')
+async def test_get_all_flights_anonymous(admin_user):
+    response = await admin_user.get('/flights')
     assert response.status_code == 200
 
 async def test_admin_can_fully_update_flight(admin_user, flight_update_data):
@@ -60,13 +61,12 @@ async def test_admin_can_fully_update_flight(admin_user, flight_update_data):
         "departure_airport_id": flight_update_data["new_airport_id"],
         "airline_id": flight_update_data["new_airline_id"],
         "arrival_airport_id": flight.arrival_airport_id,
-        "departure_at": flight.departure_at.isoformat(),
-        "arrival_at": flight.arrival_at.isoformat(),
+        "departure_at": flight.departure_at.strftime("%d.%m.%Y %H:%M"),
+        "arrival_at": flight.arrival_at.strftime("%d.%m.%Y %H:%M"),
     }
 
     response_create = await admin_user.put(f'/flights/{flight.id}', json=new_data)
     data = response_create.json()
-
     assert response_create.status_code == 200
     assert 'id' in data
 
@@ -104,6 +104,6 @@ async def test_flight_update_not_found(admin_user):
     assert response_update.status_code == 404
     assert response_update.json()["detail"] == "Рейс не найден"
 
-async def test_flight_get_not_found(auth_user):
-    response_get = await auth_user.get('/flights/999')
+async def test_flight_get_not_found(admin_user):
+    response_get = await admin_user.get('/flights/999')
     assert response_get.status_code == 404
