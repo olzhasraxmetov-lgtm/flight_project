@@ -1,6 +1,6 @@
 from app.core.database import Base
-from sqlalchemy.orm import mapped_column, Mapped, relationship
-from sqlalchemy import ForeignKey, CHAR, Enum, UniqueConstraint, Index
+from sqlalchemy.orm import mapped_column, Mapped, relationship, column_property
+from sqlalchemy import ForeignKey, CHAR, Enum, UniqueConstraint, Index, cast, String
 from app.helpers.cabin_class import CabinClass
 from app.helpers.seat_type import SeatType
 
@@ -25,3 +25,9 @@ class SeatTemplateSeatsORM(Base):
         "SeamTemplatesORM",
         back_populates="seats"
     )
+
+    cabin_class_str = column_property(cast(cabin_class, String))
+    seat_type_str = column_property(cast(seat_type, String))
+
+    def __str__(self):
+        return f"{self.seat_number} ({self.cabin_class.value if hasattr(self.cabin_class, 'value') else self.cabin_class})"

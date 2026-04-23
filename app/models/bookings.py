@@ -2,8 +2,8 @@ import datetime
 from decimal import Decimal
 
 from app.core.database import Base
-from sqlalchemy.orm import mapped_column, Mapped, relationship
-from sqlalchemy import String, ForeignKey, Numeric, Enum, DateTime, func
+from sqlalchemy.orm import mapped_column, Mapped, relationship, column_property
+from sqlalchemy import String, ForeignKey, Numeric, Enum, DateTime, func, cast
 
 from app.helpers.booking_status import BookingStatus
 
@@ -24,7 +24,7 @@ class BookingsORM(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 
     user: Mapped["UsersORM"] = relationship("UsersORM", back_populates="bookings")
-
+    booking_status_str = column_property(cast(status, String))
 
     passengers: Mapped[list["PassengersORM"]] = relationship(
         "PassengersORM",
@@ -54,3 +54,6 @@ class BookingsORM(Base):
         if self.passengers and self.passengers[0].flight_instance:
             return self.passengers[0].flight_instance.arrival_at
         return None
+
+    def __str__(self):
+        return f"Бронь №{self.id} ({self.status})"

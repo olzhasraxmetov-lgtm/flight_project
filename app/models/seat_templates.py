@@ -22,3 +22,11 @@ class SeamTemplatesORM(Base):
         cascade="all, delete-orphan",
         passive_deletes=True
     )
+
+    flight_instances: Mapped[list["FlightInstancesORM"]] = relationship(
+        "FlightInstancesORM",
+        back_populates="seat_template"
+    )
+
+    def __str__(self):
+        return f"{self.name}"

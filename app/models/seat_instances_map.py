@@ -1,8 +1,8 @@
 from decimal import Decimal
 
 from app.core.database import Base
-from sqlalchemy.orm import mapped_column, Mapped
-from sqlalchemy import String, ForeignKey, Numeric, Enum, UniqueConstraint
+from sqlalchemy.orm import mapped_column, Mapped, column_property
+from sqlalchemy import String, ForeignKey, Numeric, Enum, UniqueConstraint, cast
 from app.helpers.cabin_class import CabinClass
 from app.helpers.seat_status import SeatStatus
 from app.helpers.seat_type import SeatType
@@ -34,7 +34,12 @@ class SeatInstancesMapORM(Base):
         default=SeatStatus.AVAILABLE
     )
 
+    status_str = column_property(cast(status, String))
+
     price_override: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
     __table_args__ = (
         UniqueConstraint("flight_instance_id", "seat_number", name="uq_flight_seat"),
     )
+
+    def __str__(self):
+        return f"{self.seat_number} {self.row_number} {self.seat_letter}"

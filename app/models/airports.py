@@ -37,3 +37,6 @@ class AirportsORM(Base):
         foreign_keys="[FlightInstancesORM.arrival_airport_id]",
         back_populates='arrival_airport',
     )
+
+    def __str__(self):
+        return f"{self.code} {self.city}"

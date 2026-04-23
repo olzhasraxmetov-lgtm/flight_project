@@ -42,3 +42,6 @@ class FlightsORM(Base):
         Index("ix_flights_departure_airport_id", "arrival_airport_id"),
         Index("ix_flights_arrival_airport_id", "departure_airport_id"),
     )
+
+    def __str__(self):
+        return f"{self.flight_number}"

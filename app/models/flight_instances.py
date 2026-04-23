@@ -1,12 +1,13 @@
 from decimal import Decimal
 
 from app.core.database import Base
-from sqlalchemy.orm import mapped_column, Mapped, relationship
-from sqlalchemy import String, ForeignKey, DateTime, Numeric, Enum, Index
+from sqlalchemy.orm import mapped_column, Mapped, relationship, column_property
+from sqlalchemy import String, ForeignKey, DateTime, Numeric, Enum, Index, cast, CheckConstraint
 from datetime import datetime
-
+from typing import TYPE_CHECKING
 from app.helpers.flight_status import FlightStatus
-
+if TYPE_CHECKING:
+    from app.models.seat_templates import SeamTemplatesORM
 
 class FlightInstancesORM(Base):
     __tablename__ = 'flight_instances'
@@ -23,6 +24,13 @@ class FlightInstancesORM(Base):
 
     base_price: Mapped[Decimal] = mapped_column(Numeric(10, 2))
     status: Mapped[FlightStatus] = mapped_column(Enum(FlightStatus, native_enum=True), default=FlightStatus.SCHEDULED)
+
+    flight_status_str = column_property(cast(status, String))
+
+    seat_template: Mapped["SeamTemplatesORM"] = relationship(
+        "SeamTemplatesORM",
+        back_populates="flight_instances"
+    )
 
     departure_airport: Mapped['AirportsORM'] = relationship(
         'AirportsORM',
@@ -45,4 +53,8 @@ class FlightInstancesORM(Base):
         Index("ix_flight_instances_departure_at", "departure_at"),
         Index("ix_flight_instances_arrival_at", "arrival_at"),
         Index("ix_flight_instances_departure_airport_id", "departure_airport_id"),
+        CheckConstraint('arrival_at > departure_at', name='check_arrival_after_departure'),
     )
+
+    def __str__(self):
+        return f"Рейс: {self.flight_number}"

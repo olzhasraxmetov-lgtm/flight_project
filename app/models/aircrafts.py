@@ -17,3 +17,6 @@ class AircraftsORM(Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+
+    def __str__(self):
+        return f"{self.name}"

@@ -15,3 +15,6 @@ class AirlinesORM(Base):
         'FlightsORM',
         back_populates='airline'
     )
+
+    def __str__(self):
+        return f"{self.name}"

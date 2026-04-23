@@ -1,8 +1,8 @@
 from datetime import datetime
 
 from app.core.database import Base
-from sqlalchemy.orm import mapped_column, Mapped, relationship
-from sqlalchemy import String, DateTime, func
+from sqlalchemy.orm import mapped_column, Mapped, relationship, column_property
+from sqlalchemy import String, DateTime, func, cast
 from app.helpers.users_role import UserRoleEnum
 
 class UsersORM(Base):
@@ -21,3 +21,10 @@ class UsersORM(Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+
+    password: Mapped[str] = column_property(cast(None, String))
+
+    user_role_str = column_property(cast(role, String))
+
+    def __str__(self):
+        return f"{self.email}"
