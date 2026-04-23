@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from fastapi_cache.decorator import cache
 
 from app.core.dependencies import DBDep
 from app.core.dependencies import admin_only
@@ -23,6 +24,7 @@ async def create_seat_template(
     summary='Получить все шаблоны',
     dependencies=[admin_only]
 )
+@cache(expire=60)
 async def get_all_seat_templates(
     db: DBDep,
 ):
@@ -34,6 +36,7 @@ async def get_all_seat_templates(
     summary='Получить шаблон самолета по ID',
     dependencies=[admin_only]
 )
+@cache(expire=30)
 async def get_seat_template_by_id(
     db: DBDep,
     seat_template_id: int

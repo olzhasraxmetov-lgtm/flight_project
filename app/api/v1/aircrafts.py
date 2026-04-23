@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from fastapi_cache.decorator import cache
 
 from app.core.dependencies import DBDep
 from app.core.dependencies import admin_only
@@ -28,6 +29,7 @@ async def create_aircraft(
     summary='Получить все самолеты',
     dependencies=[admin_only]
 )
+@cache(expire=60)
 async def get_all_aircrafts(
     db: DBDep
 ):

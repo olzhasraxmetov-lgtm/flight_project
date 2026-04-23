@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from fastapi_cache.decorator import cache
 
 from app.core.dependencies import DBDep
 from app.core.dependencies import admin_only, PaginationDep
@@ -11,6 +12,7 @@ router = APIRouter(
 )
 
 @router.get('', summary='Получить список вылетов',dependencies=[admin_only], response_model=list[FlightResponse])
+@cache(expire=60)
 async def get_paginated_flights(
     db: DBDep,
     pagination: PaginationDep,
