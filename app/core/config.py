@@ -4,6 +4,8 @@ from typing import Literal
 class Settings(BaseSettings):
     MODE: Literal["TEST", "LOCAL", "DEV", "PROD"]
 
+    ADMIN_SECRET_KEY: str
+
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
