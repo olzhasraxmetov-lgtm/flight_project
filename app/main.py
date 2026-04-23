@@ -1,8 +1,11 @@
-from app.admin.auth import AdminAuth
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
+
 from app.core.logger import logger
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from app.core.config import settings
+from contextlib import asynccontextmanager
 from app.core.database import async_engine
 from app.api.v1.users import router as user_router
 from app.api.v1.airlines import router as airline_router
@@ -17,12 +20,20 @@ from app.api.v1.payments import router as payment_router
 from app.api.v1.payments import webhook_router
 from app.helpers.exception_handler import add_exception_handler
 from app.admin.setup import setup_admin
-from sqladmin import Admin
 from app.core.config import settings
+from app.connectors.redis_connector import redis_connector
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await redis_connector.connect()
+    FastAPICache.init(RedisBackend(redis_connector._redis), prefix="fastapi-cache")
+    logger.info('FastAPI Cache Initialized')
+    yield
+    await redis_connector.close()
 app = FastAPI(
     title=settings.APP_NAME,
     description=settings.APP_DESCRIPTION,
     version=settings.APP_VERSION,
+    lifespan=lifespan,
 )
 add_exception_handler(app=app)
 
@@ -37,6 +48,8 @@ app.include_router(flight_instance_router)
 app.include_router(booking_router)
 app.include_router(payment_router)
 app.include_router(webhook_router)
+
+
 @app.get('/', include_in_schema=False)
 async def root():
     """
