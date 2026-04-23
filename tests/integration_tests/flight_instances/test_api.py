@@ -29,18 +29,18 @@ async def test_get_flight_instances_pagination_params(ac, params, expected_statu
 async def test_create_flight_instance(admin_user, seed_data, custom_data, expected_status, created_seat_template):
     payload = {
         "flight_number": "KC-851",
-        "departure_at": "2026-03-25T10:00:00Z",
-        "arrival_at": "2026-03-25T12:00:00Z",
-        "base_price": 25000,
+        "departure_at": "25.03.2026 10:00",
+        "arrival_at": "25.03.2026 12:00",
+        "price": 25000,
         "seat_template_id": created_seat_template.id,
         "departure_airport_id": seed_data["ala_id"],
         "arrival_airport_id": seed_data["nqz_id"],
+        "airline_id": seed_data["airline_id"]
     }
 
     payload.update(custom_data)
 
     response = await admin_user.post('/flight_instances', json=payload)
-
     assert response.status_code == expected_status
 
 async def test_get_all_flight_instances_anonymous(ac):

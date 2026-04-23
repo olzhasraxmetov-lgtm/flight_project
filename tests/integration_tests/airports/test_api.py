@@ -31,7 +31,7 @@ async def test_create_airport(code, name, city, country, timezone, status_code, 
     ]
 )
 async def test_get_airports_with_pagination(
-        ac, db, params, expected_len, expected_code
+        ac, db, params, expected_len, expected_code, init_cache
 ):
     airports = [
         {

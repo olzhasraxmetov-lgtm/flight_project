@@ -21,7 +21,7 @@ async def test_airlines_create(iata_code, name, status_code, admin_user):
     ({"name": "Air", "page": 1, "per_page": 2}, 2, "IQ"),
     ({"name": "NonExistent"}, 0, None),
 ])
-async def test_get_all_airline(auth_user, db, params, expected_len, expected_iata):
+async def test_get_all_airline(auth_user, db, params, expected_len, expected_iata, init_cache):
     airlines = [
         {"iata_code": "IQ", "name": "Qazaq Air"},
         {"iata_code": "AA", "name": "American Airlines"},

@@ -1,6 +1,8 @@
 import pytest
 from typing import AsyncGenerator
 
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.inmemory import InMemoryBackend
 from httpx import AsyncClient, ASGITransport
 from unittest.mock import patch
 from app.core.config import settings
@@ -78,3 +80,7 @@ def mock_email_task():
     path = "app.tasks.emails.send_email_after_payment.delay"
     with patch(path) as mock:
         yield mock
+
+@pytest.fixture(autouse=True, scope="session")
+def init_cache():
+    FastAPICache.init(InMemoryBackend(), prefix="test-cache")
