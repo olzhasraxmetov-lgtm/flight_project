@@ -1,33 +1,45 @@
 from asyncpg import UniqueViolationError
 from pydantic import BaseModel
-from sqlalchemy import select, insert, Sequence, update, delete
+from sqlalchemy import select, insert, update, delete
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.exceptions.base import ObjectAlreadyExistException, ObjectNotFoundException
 from app.mappers.base import DataMapper
 from loguru import logger
+from app.core.database import Base
+from typing import Generic, TypeVar, Type, Any, Sequence
 
-class BaseRepository:
-    model = None
-    mapper: DataMapper = None
+T = TypeVar('T', bound=Base)
+
+class BaseRepository(Generic[T]):
+    model: Type[T]
+    mapper: Type[DataMapper] | None = None
 
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get_filtered(self, *filter, **filter_by):
+    def _map(self, model_obj: Any, map_res: bool = True):
+        if model_obj is None:
+            return None
+        if not map_res or self.mapper is None:
+            return model_obj
+        return self.mapper.map_to_domain_entity(model_obj)
+
+    async def get_filtered(self, *filter, map_res: bool = True, **filter_by):
         query = select(self.model).filter(*filter).filter_by(**filter_by)
         result = await self.session.execute(query)
-        return [self.mapper.map_to_domain_entity(model) for model in result.scalars().all()]
+        return [self._map(model, map_res) for model in result.scalars().all()]
 
-    async def get_all(self, *args, **kwargs):
-        return await self.get_filtered(*args, **kwargs)
+    async def get_all(self, *args, map_res: bool = True, **kwargs):
+        return await self.get_filtered(*args, map_res, **kwargs)
 
     async def get_paginated_items(
             self,
             *filter_clauses,
             offset: int,
             limit: int,
-            options: list = None,
+            options: list[Any] | None = None,
+            map_res: bool = True,
             **simple_filters
     ):
         query = select(self.model)
@@ -55,19 +67,15 @@ class BaseRepository:
         result = await self.session.execute(query)
 
         return [
-            self.mapper.map_to_domain_entity(item)
+            self._map(item, map_res=map_res)
             for item in result.unique().scalars().all()
         ]
 
-    async def get_one_or_none(self, map_res: bool = True, **filter_by):
+    async def get_one_or_none(self, map_res: bool = True, **filter_by) -> Any | T | None:
         query = select(self.model).filter_by(**filter_by)
         result = await self.session.execute(query)
         model = result.scalars().one_or_none()
-        if model is None:
-            return None
-        if not map_res:
-            return model
-        return self.mapper.map_to_domain_entity(model)
+        return self._map(model, map_res)
 
     async def get_one(self, map_res: bool = True, **filter_by):
         query = select(self.model).filter_by(**filter_by)
@@ -76,9 +84,7 @@ class BaseRepository:
             model = result.scalar_one()
         except NoResultFound:
             raise ObjectNotFoundException
-        if not map_res:
-            return model
-        return self.mapper.map_to_domain_entity(model)
+        return self._map(model, map_res)
 
     async def add(self, data: BaseModel | dict, map_res: bool = True):
         values = data if isinstance(data, dict) else data.model_dump()
@@ -86,33 +92,32 @@ class BaseRepository:
             add_stmt = insert(self.model).values(**values).returning(self.model)
             result = await self.session.execute(add_stmt)
             model = result.scalar_one()
-            if not map_res:
-                return model
-            return self.mapper.map_to_domain_entity(model)
+            return self._map(model, map_res)
         except IntegrityError as ex:
             logger.warning("Integrity error", model_name=self.model.__name__, detail=str(ex))
-            if isinstance(ex.orig.__cause__, UniqueViolationError):
+            orig_cause = getattr(ex.orig, "__cause__", None)
+            if isinstance(orig_cause, UniqueViolationError):
                 raise ObjectAlreadyExistException from ex
             else:
                 logger.error(f"Unexpected IntegrityError: {ex}")
                 raise ex
 
-    async def add_bulk(self, data: Sequence[BaseModel | dict]):
+    async def add_bulk(self, data: Sequence[BaseModel | dict], map_res: bool = True):
         values = [
             item if isinstance(item, dict) else item.model_dump()
             for item in data
         ]
 
+        if not values:
+            return []
+
         try:
-            add_stmt = insert(self.model).values(values).returning(self.model)
-            result = await self.session.execute(add_stmt)
+            add_stmt = insert(self.model).returning(self.model)
+            result = await self.session.execute(add_stmt,values)
 
             models = result.scalars().all()
 
-            if self.mapper is None:
-                return models
-
-            return [self.mapper.map_to_domain_entity(m) for m in models]
+            return [self._map(m, map_res=map_res) for m in models]
 
         except IntegrityError as ex:
             logger.warning("Bulk Integrity error", model_name=self.model.__name__)
@@ -138,13 +143,11 @@ class BaseRepository:
                 filters=filter_by
             )
             raise ObjectNotFoundException
-        if not map_res:
-            return updated_obj
-        return self.mapper.map_to_domain_entity(updated_obj)
+        return self._map(updated_obj, map_res)
 
 
     async def delete(self, **filter_by) -> None:
-        delete_stmt = delete(self.model).filter_by(**filter_by).returning(self.model.id)
+        delete_stmt = delete(self.model).filter_by(**filter_by).returning(getattr(self.model, "id"))
         result = await self.session.execute(delete_stmt)
         deleted_id = result.scalar_one_or_none()
         if not deleted_id:

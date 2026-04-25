@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import Sequence
 
 from loguru import logger
 from sqlalchemy.sql.functions import current_user
@@ -17,11 +18,11 @@ from app.utils.pnr_generator import generate_pnr_identifier
 
 class BookingService(BaseService):
 
-    async def get_booking_or_404(self, booking_id: int):
+    async def get_booking_or_404(self, booking_id: int, user_id: int):
         try:
-            return await self.db.bookings.get_booking_with_passengers(booking_id)
+            return await self.db.bookings.get_booking_with_passengers(booking_id, user_id)
         except ObjectNotFoundException:
-            logger.warning(f"Booking not found", booking_id=booking_id)
+            logger.warning(f"Booking not found", booking_id=booking_id, user_id=user_id)
             raise BookingNotFoundException
 
     async def create_booking(
@@ -52,6 +53,9 @@ class BookingService(BaseService):
         )
         new_booking = await self.db.bookings.add(booking_data, map_res=False)
 
+        if not new_booking:
+            raise BookingNotFoundException
+
         await self.db.session.flush()
 
         passengers = [
@@ -71,16 +75,16 @@ class BookingService(BaseService):
         logger.info(f"Booking created",
                     updated_data=payload.model_dump(exclude_unset=True, mode="json"))
 
-        return await self.db.bookings.get_booking_with_passengers(booking_id=new_booking.id)
+        return await self.db.bookings.get_booking_with_passengers(booking_id=new_booking.id, user_id=user_id)
 
-    async def get_my_bookings(self, user_id: int) -> list[MyBookingsResponse]:
+    async def get_my_bookings(self, user_id: int) -> Sequence[MyBookingsResponse]:
         return await self.db.bookings.get_user_bookings(user_id)
 
-    async def get_booking(self, booking_id: int):
-         return await self.get_booking_or_404(booking_id)
+    async def get_booking(self, booking_id: int, user_id: int):
+         return await self.get_booking_or_404(booking_id, user_id)
 
-    async def delete_booking_fully(self, booking_id: int):
-        booking = await self.get_booking_or_404(booking_id)
+    async def delete_booking_fully(self, booking_id: int,user_id: int):
+        booking = await self.get_booking_or_404(booking_id, user_id)
         seat_ids = [p.seat_instance_id for p in booking.passengers]
         if seat_ids:
          await self.db.seat_instances_map.update_status(seat_ids, seat_status=SeatStatus.AVAILABLE)
@@ -91,12 +95,12 @@ class BookingService(BaseService):
         return {"detail": "Бронирование успешно удалено"}
 
     async def delete_passenger_in_booking(self, passenger_id: int, booking_id: int, user_id: int):
-        booking = await self.get_booking_or_404(booking_id)
+        booking = await self.get_booking_or_404(booking_id, user_id)
         if booking.user_id != user_id:
             logger.warning(f"Forbidden access attempt", booking_id=booking_id, user_id=user_id)
             raise ForbiddenBookingException
         if len(booking.passengers) == 1:
-            return await self.delete_booking_fully(booking_id)
+            return await self.delete_booking_fully(booking_id, user_id)
         passenger = next((p for p in booking.passengers if p.id == passenger_id), None)
         if not passenger:
             logger.warning(f"Passenger not found", booking_id=booking_id, passenger_id=passenger_id)

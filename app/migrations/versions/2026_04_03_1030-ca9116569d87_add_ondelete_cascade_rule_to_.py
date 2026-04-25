@@ -25,5 +25,5 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Downgrade schema."""
-    op.drop_constraint(None, 'passengers', type_='foreignkey')
+    op.drop_constraint(None, 'passengers', type_='foreignkey') # type: ignore
     op.create_foreign_key(op.f('passengers_booking_id_fkey'), 'passengers', 'bookings', ['booking_id'], ['id'])

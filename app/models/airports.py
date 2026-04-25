@@ -1,7 +1,12 @@
+import typing
+
 from app.core.database import Base
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from sqlalchemy import String, CHAR
 
+if typing.TYPE_CHECKING:
+    from app.models.flights import FlightsORM
+    from app.models.flight_instances import FlightInstancesORM
 
 
 class AirportsORM(Base):

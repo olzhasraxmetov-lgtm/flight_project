@@ -35,7 +35,7 @@ async def get_flight_by_id(
     return await FlightsService(db).get_flight(flight_id)
 
 @router.delete('/{flight_id}', summary='Удалить рейс по ID', dependencies=[admin_only], status_code=204)
-async def get_flight_by_id(
+async def delete_flight_by_id(
         db: DBDep,
         flight_id: int,
 ):

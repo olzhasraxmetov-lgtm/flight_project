@@ -1,7 +1,7 @@
 from app.exceptions.base import ObjectNotFoundException, AirlineNotFoundException
 from app.services.base import BaseService
 from app.schemas.airlines import AirlineCreate, AirlineResponse, AirlineUpdate
-from typing import Sequence
+from typing import Sequence, cast
 from loguru import logger
 
 class AirlinesService(BaseService):
@@ -15,11 +15,12 @@ class AirlinesService(BaseService):
             pagination,
             name: str | None
     ) -> Sequence[AirlineResponse]:
-        return await self.db.airlines.get_paginated_items(
+        result =  await self.db.airlines.get_paginated_items(
             limit=pagination.per_page or 5,
             offset=(pagination.page - 1) * (pagination.per_page or 5),
             name__ilike=name
         )
+        return cast(Sequence[AirlineResponse], result)
 
     async def get_airline(self, airline_id: int) -> AirlineResponse:
         return await self.check_if_entity_exists(self.db.airlines, airline_id, AirlineNotFoundException)

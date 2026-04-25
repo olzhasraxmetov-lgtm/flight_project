@@ -1,7 +1,13 @@
+import typing
+
 from app.core.database import Base
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from sqlalchemy import String, Boolean, ForeignKey
 
+if typing.TYPE_CHECKING:
+    from app.models.aircrafts import AircraftsORM
+    from app.models.seat_template_seat import SeatTemplateSeatsORM
+    from app.models.flight_instances import FlightInstancesORM
 
 class SeamTemplatesORM(Base):
     __tablename__ = "seat_templates"

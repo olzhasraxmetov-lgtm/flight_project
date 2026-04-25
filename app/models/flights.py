@@ -1,3 +1,4 @@
+import typing
 from datetime import datetime
 from decimal import Decimal
 
@@ -6,6 +7,9 @@ from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 from app.core.database import Base
 
+if typing.TYPE_CHECKING:
+    from app.models.airports import AirportsORM
+    from app.models.airlines import AirlinesORM
 
 class FlightsORM(Base):
     __tablename__ = 'flights'

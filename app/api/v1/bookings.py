@@ -31,7 +31,7 @@ async def get_booking_detail_by_id(
         user: CurrentUser,
         booking_id: int,
 ):
-    return await BookingService(db).get_booking(booking_id=booking_id)
+    return await BookingService(db).get_booking(booking_id=booking_id, user_id=user.id)
 
 @router.delete("/{booking_id}", summary="Отменить бронь полностью")
 async def delete_booking(
@@ -39,7 +39,7 @@ async def delete_booking(
         user: CurrentUser,
         booking_id: int,
 ):
-    return await BookingService(db).delete_booking_fully(booking_id=booking_id)
+    return await BookingService(db).delete_booking_fully(booking_id=booking_id, user_id=user.id)
 
 @router.delete("/{booking_id}/passenger/{passenger_id}", summary="Отменить бронь для определенного пассажира")
 async def delete_passenger_in_booking(

@@ -1,9 +1,13 @@
+import typing
 from datetime import datetime
 
 from app.core.database import Base
 from sqlalchemy.orm import mapped_column, Mapped, relationship, column_property
 from sqlalchemy import String, DateTime, func, cast
 from app.helpers.users_role import UserRoleEnum
+
+if typing.TYPE_CHECKING:
+    from app.models.bookings import BookingsORM
 
 class UsersORM(Base):
     __tablename__ = 'users'

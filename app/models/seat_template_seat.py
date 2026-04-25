@@ -1,9 +1,13 @@
+import typing
+
 from app.core.database import Base
 from sqlalchemy.orm import mapped_column, Mapped, relationship, column_property
 from sqlalchemy import ForeignKey, CHAR, Enum, UniqueConstraint, Index, cast, String
 from app.helpers.cabin_class import CabinClass
 from app.helpers.seat_type import SeatType
 
+if typing.TYPE_CHECKING:
+    from app.models.seat_templates import SeamTemplatesORM
 
 class SeatTemplateSeatsORM(Base):
     __tablename__ = "seat_template_seats"

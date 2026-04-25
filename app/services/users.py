@@ -6,7 +6,7 @@ from pwdlib import PasswordHash
 from app.core.config import settings
 from app.exceptions.api import UserEmailAlreadyExistsHTTPException
 from app.exceptions.base import EmailNotRegisteredException, IncorrectPasswordException, UserAlreadyExistException, \
-    ObjectAlreadyExistException
+    ObjectAlreadyExistException, UserNotFoundException
 from app.schemas.users import UserRequestCreate, UserCreate, UserLoginRequest
 from app.services.base import BaseService
 from loguru import logger
@@ -35,6 +35,7 @@ class UsersService(BaseService):
         new_user_data = UserCreate(**payload.model_dump(), hashed_password=hashed_password)
         try:
             new_user = await self.db.users.add(new_user_data)
+            assert new_user is not None
             await self.db.commit()
             logger.info(f"New user registered successfully", user_id=new_user.id, email=new_user.email)
         except ObjectAlreadyExistException:
@@ -56,5 +57,13 @@ class UsersService(BaseService):
     async def get_user_by_username(self, username: str):
         return await self.db.users.get_one_or_none(username=username)
 
-    async def get_my_profile(self):
-        return await self.db.users.mapper.map_to_domain_entity()
+    async def get_my_profile(self, user_id: int):
+        user_orm = await self.db.users.get_one_or_none(id=user_id, map_res=False)
+
+        if not user_orm:
+            raise UserNotFoundException
+
+        if self.db.users.mapper is None:
+            return user_orm
+
+        return self.db.users.mapper.map_to_domain_entity(user_orm)

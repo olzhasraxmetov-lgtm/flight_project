@@ -8,7 +8,7 @@ class SeatTemplateSeatsRepository(BaseRepository):
     model = SeatTemplateSeatsORM
     mapper = SeatTemplateSeatsMapper
 
-    async def get_ordered_and_filters_seats(self, template_id: int):
+    async def get_ordered_and_filters_seats(self, template_id: int, map_res: bool = True):
         query = (
             select(self.model)
             .where(self.model.seat_template_id == template_id)
@@ -16,7 +16,7 @@ class SeatTemplateSeatsRepository(BaseRepository):
                       self.model.seat_letter)
         )
         result = await self.session.execute(query)
-        return [self.mapper.map_to_domain_entity(model) for model in result.scalars().all()]
+        return [self._map(model, map_res) for model in result.scalars().all()]
 
     async def delete_by_template_id(self, template_id: int):
         query = delete(self.model).where(self.model.seat_template_id == template_id)

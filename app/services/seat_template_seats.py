@@ -55,15 +55,16 @@ class SeatTemplateSeatsService(BaseService):
         seats = await self.db.seat_template_seats.get_ordered_and_filters_seats(template_id)
         seat_map = {}
         for seat in seats:
-            row_key = str(seat.row_number)
-            seat_map.setdefault(row_key, []).append(
-                SeatShortResponse(
-                    id=seat.id,
-                    no=seat.seat_number.strip(),
-                    cabin_class=seat.cabin_class,
-                    seat_type=seat.seat_type,
+            if seat is not None:
+                row_key = str(seat.row_number)
+                seat_map.setdefault(row_key, []).append(
+                    SeatShortResponse(
+                        id=seat.id,
+                        no=seat.seat_number.strip(),
+                        cabin_class=seat.cabin_class,
+                        seat_type=seat.seat_type,
+                    )
                 )
-            )
         return SeatTemplateMapResponse(
             template_id=template_id,
             total_seats=len(seats),

@@ -7,13 +7,12 @@ from app.models.flights import FlightsORM
 from app.repositories.base import BaseRepository
 
 
-
 class FlightsRepository(BaseRepository):
     model = FlightsORM
     mapper = FlightMapper
 
 
-    async def get_flight_with_rels(self, flight_id: int):
+    async def get_flight_with_rels(self, flight_id: int, map_res: bool = True):
         query = (
             select(FlightsORM)
             .where(FlightsORM.id == flight_id)
@@ -28,4 +27,4 @@ class FlightsRepository(BaseRepository):
         model = result.unique().scalar_one_or_none()
         if not model:
             raise ObjectNotFoundException()
-        return self.mapper.map_to_domain_entity(model)
+        return self._map(model, map_res)

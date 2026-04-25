@@ -65,7 +65,7 @@ async def logout_user(
     return {"status": "success"}
 
 @router.get("/me", summary='Мой профиль')
-async def logout_user(
+async def get_my_profile(
         user: CurrentUser,
 ):
     return user

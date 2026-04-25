@@ -1,7 +1,7 @@
-from typing import Annotated, Optional
+from typing import Annotated, Optional, cast
 
 import jwt
-from fastapi import Depends, Request, Query
+from fastapi import Depends, Request, Query, HTTPException
 from fastapi.security import OAuth2PasswordBearer, APIKeyCookie
 from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel
@@ -35,7 +35,7 @@ async def get_current_user(
 ):
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        username: str = payload.get("sub")
+        username = payload.get("sub")
         token_data = TokenData(username=username)
     except InvalidTokenError:
         raise IncorrectTokenHTTPException
@@ -43,7 +43,7 @@ async def get_current_user(
     if username is None:
         raise IncorrectTokenHTTPException
 
-    user = await UsersService(db).get_user_by_username(username=token_data.username)
+    user = await UsersService(db).get_user_by_username(username=cast(str, token_data.username))
 
     if user is None:
         raise IncorrectTokenHTTPException

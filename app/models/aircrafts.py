@@ -1,8 +1,10 @@
 from app.core.database import Base
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from sqlalchemy import String
+import typing
 
-
+if typing.TYPE_CHECKING:
+    from app.models.seat_templates import SeamTemplatesORM
 
 class AircraftsORM(Base):
     __tablename__ = "aircrafts"

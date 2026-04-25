@@ -52,7 +52,7 @@ def send_email_after_payment(booking_id):
                 await aiosmtplib.send(
                     message,
                     hostname=settings.SMTP_HOST,
-                    port=settings.SMTP_PORT,
+                    port=int(settings.SMTP_PORT),
                     username=settings.SMTP_USER,
                     password=settings.SMTP_PASS,
                     use_tls=False,

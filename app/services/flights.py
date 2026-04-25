@@ -1,3 +1,5 @@
+from typing import Sequence, cast
+
 from sqlalchemy.orm import joinedload
 
 from app.exceptions.base import (AirportNotFoundException, AirlineNotFoundException,
@@ -19,7 +21,7 @@ class FlightsService(BaseService):
             self,
             search: FlightSearch,
             pagination
-    ) -> list[FlightResponse]:
+    ) -> Sequence[FlightResponse]:
         filter_clauses = []
         options = [
             joinedload(self.db.flights.model.airline),
@@ -35,7 +37,7 @@ class FlightsService(BaseService):
         if search.max_price and search.max_price > 0:
             filter_clauses.append(self.db.flights.model.price <= search.max_price)
 
-        return await self.db.flights.get_paginated_items(
+        result =  await self.db.flights.get_paginated_items(
             *filter_clauses,
             offset=(pagination.page - 1) * (pagination.per_page or 5),
             limit=pagination.per_page or 5,
@@ -44,6 +46,7 @@ class FlightsService(BaseService):
             arrival_airport_id=search.arrival_airport_id,
             airline_id=search.airline_id,
         )
+        return cast(Sequence[FlightResponse], result)
 
     async def _validation_for_entities(self, payload: FlightCreate | FlightUpdate) -> None:
         if payload.departure_airport_id is not None:
@@ -67,17 +70,21 @@ class FlightsService(BaseService):
 
 
         new_flight = await self.db.flights.add(payload, map_res=False)
+        assert new_flight is not None
         await self.db.commit()
         logger.info(f"Flight created successfully",
                     updated_data=payload.model_dump(exclude_unset=True, mode="json"))
         flight_response = await self.db.flights.get_flight_with_rels(new_flight.id)
+        if not flight_response:
+            raise FlightNotFoundException
+
         return flight_response
 
     async def get_flight(self, flight_id: int) -> FlightResponse:
-        try:
-            return await self.db.flights.get_flight_with_rels(flight_id)
-        except ObjectNotFoundException:
+        flight = await self.db.flights.get_flight_with_rels(flight_id)
+        if not flight:
             raise FlightNotFoundException
+        return flight
 
     async def delete_flight(self, flight_id: int) -> None:
         await self.get_flight_or_404(flight_id)
@@ -90,6 +97,8 @@ class FlightsService(BaseService):
         await self.get_flight_or_404(flight_id)
         await self._validation_for_entities(payload)
         updated_flight = await self.db.flights.edit(id=flight_id, data=payload, map_res=False, exclude_unset=exclude_unset)
+        if not updated_flight:
+            raise ObjectNotFoundException
         await self.db.commit()
         logger.info(f"Flight updated successfully", flight_id=flight_id,
                     updated_data=payload.model_dump(exclude_unset=True, mode="json"))

@@ -1,10 +1,11 @@
 from datetime import datetime, time
+from typing import Sequence, cast
 
 from loguru import logger
 from sqlalchemy.orm import joinedload
 import zoneinfo
 from app.exceptions.base import SameAirportException, AirportNotFoundException, SeatTemplateNotFoundException, \
-    FlightInstanceNotFoundException, ObjectNotFoundException
+    FlightInstanceNotFoundException, ObjectNotFoundException, EntityCreationException
 from app.helpers.flight_status import FlightStatus
 from app.helpers.seat_status import SeatStatus
 from app.schemas.flight_instances import FlightInstanceCreate, FlightInstanceStatusUpdate, FlightInstanceResponse
@@ -30,7 +31,7 @@ class FlightInstancesService(BaseService):
             self,
             search: FlightSearch,
             pagination
-    ) -> list[FlightInstanceResponse]:
+    ) -> Sequence[FlightInstanceResponse]:
         filter_clauses = []
 
         search_tz = zoneinfo.ZoneInfo("UTC")
@@ -63,7 +64,7 @@ class FlightInstancesService(BaseService):
 
         filter_clauses.append(self.db.flight_instances.model.status == FlightStatus.SCHEDULED)
 
-        return await self.db.flight_instances.get_paginated_items(
+        result =  await self.db.flight_instances.get_paginated_items(
             *filter_clauses,
             offset=(pagination.page - 1) * (pagination.per_page or 5),
             limit=pagination.per_page or 5,
@@ -71,6 +72,7 @@ class FlightInstancesService(BaseService):
             departure_airport_id=search.departure_airport_id,
             arrival_airport_id=search.arrival_airport_id,
         )
+        return cast(Sequence[FlightInstanceResponse], result)
 
     async def create_flight_instance(self, payload: FlightInstanceCreate):
         await self.check_if_entity_exists(self.db.airports, payload.departure_airport_id, AirportNotFoundException)
@@ -85,6 +87,9 @@ class FlightInstancesService(BaseService):
         flight_instance = await self.db.flight_instances.add(payload, map_res=False)
         await self.db.session.flush()
 
+        if not flight_instance:
+            raise EntityCreationException
+
         template_seats = await self.db.seat_template_seats.get_all(
             seat_template_id=payload.seat_template_id
         )
@@ -98,7 +103,7 @@ class FlightInstancesService(BaseService):
                 "seat_type": s.seat_type,
                 "status": SeatStatus.AVAILABLE
             }
-            for s in template_seats
+            for s in template_seats if s is not None
         ]
         await self.db.seat_instances_map.add_bulk(seats_to_create)
 
@@ -112,6 +117,8 @@ class FlightInstancesService(BaseService):
         seats = await self.db.seat_instances_map.get_ordered_seats_map(flight_instance_id)
         seat_map = {}
         for seat in seats:
+            if not seat:
+                continue
             row_key = str(seat.row_number)
             seat_map.setdefault(row_key, []).append(
                 SeatMapShortResponse(

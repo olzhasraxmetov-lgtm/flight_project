@@ -27,6 +27,9 @@ class SeatTemplatesService(BaseService):
         return await self.get_seat_template_or_404(seat_template_id)
 
     async def _edit_seat_template(self, seat_template_id: int, payload: SeatTemplateUpdate, exclude_unset):
+        if payload.aircraft_model_id is not None:
+            await self.check_if_entity_exists(self.db.aircrafts, payload.aircraft_model_id,
+                                              error_exception=AircraftNotFoundException)
         try:
             updated_seat_template = await self.db.seat_templates.edit(data=payload, exclude_unset=exclude_unset, id=seat_template_id)
             await self.db.commit()

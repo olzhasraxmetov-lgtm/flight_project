@@ -49,7 +49,7 @@ class UserAdmin(ModelView, model=UsersORM):
     ) -> None:
         password = data.get("password")
         if password:
-            model.hashed_password = UsersService().get_password_hash(password)
+            model.hashed_password = UsersService().get_password_hash(password) # type: ignore
 
         if "password" in data:
             del data["password"]

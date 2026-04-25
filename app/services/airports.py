@@ -1,4 +1,4 @@
-from typing import Sequence
+from typing import Sequence, cast
 from app.schemas.airports import AirportCreate, AirportResponse, AirportUpdate
 from app.services.base import BaseService
 from app.exceptions.base import ObjectNotFoundException, AirportNotFoundException
@@ -7,6 +7,7 @@ from loguru import logger
 class AirportsService(BaseService):
     async def create_airport(self, payload: AirportCreate) -> AirportResponse:
         new_airport = await self.db.airports.add(payload)
+        assert new_airport is not None, "Failed to create airport"
         await self.db.commit()
         return new_airport
 
@@ -18,13 +19,14 @@ class AirportsService(BaseService):
             name: str | None
     ) -> Sequence[AirportResponse]:
         per_page = pagination.per_page or 5
-        return await self.db.airports.get_paginated_items(
+        result =  await self.db.airports.get_paginated_items(
             limit=per_page,
             offset=per_page * (pagination.page - 1),
             city__ilike=city,
             country__ilike=country,
             name__ilike=name,
         )
+        return cast(Sequence[AirportResponse], result)
 
     async def get_airport_by_id(self, airport_id: int) -> AirportResponse:
          return await self.check_if_entity_exists(self.db.airports, airport_id, AirportNotFoundException)

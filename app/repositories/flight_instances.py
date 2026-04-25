@@ -25,4 +25,4 @@ class FlightInstancesRepository(BaseRepository):
         model = result.unique().scalar_one_or_none()
         if not model:
             raise ObjectNotFoundException()
-        return self.mapper.map_to_domain_entity(model)
+        return self._map(model)

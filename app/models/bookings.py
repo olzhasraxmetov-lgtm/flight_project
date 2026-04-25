@@ -1,4 +1,5 @@
-import datetime
+from datetime import datetime
+import typing
 from decimal import Decimal
 
 from app.core.database import Base
@@ -6,7 +7,9 @@ from sqlalchemy.orm import mapped_column, Mapped, relationship, column_property
 from sqlalchemy import String, ForeignKey, Numeric, Enum, DateTime, func, cast
 
 from app.helpers.booking_status import BookingStatus
-
+if typing.TYPE_CHECKING:
+    from app.models.users import UsersORM
+    from app.models.passengers import PassengersORM
 
 class BookingsORM(Base):
     __tablename__ = "bookings"

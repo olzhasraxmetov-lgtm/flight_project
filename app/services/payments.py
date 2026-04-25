@@ -8,7 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.tasks.emails import send_email_after_payment
 from app.core.dependencies import DBDep
 from app.exceptions.base import BookingAlreadyPaidException, ForbiddenBookingException, ObjectNotFoundException, \
-    BookingNotFoundException, PaymentNotFoundException
+    BookingNotFoundException, PaymentNotFoundException, PaymentCreationException
 from app.helpers.booking_status import BookingStatus
 from app.services.base import BaseService
 from yookassa import Configuration, Payment
@@ -82,7 +82,7 @@ class PaymentsService(BaseService):
 
     async def initiate_payment(self, booking_id: int, user_email: str, user_id: int) -> dict[str, Any]:
         try:
-            booking = await self.db.bookings.get_booking_with_passengers(booking_id=booking_id)
+            booking = await self.db.bookings.get_booking_with_passengers(booking_id=booking_id, user_id=user_id)
         except ObjectNotFoundException:
             raise BookingNotFoundException
 
@@ -106,7 +106,8 @@ class PaymentsService(BaseService):
             "status": PaymentStatus.PENDING,
             "payment_method": "yookassa"
         })
-
+        if not new_payment:
+            raise PaymentCreationException
         await self.db.commit()
         logger.info(
             "Payment initiated and saved to DB",
@@ -119,10 +120,11 @@ class PaymentsService(BaseService):
         logger.info("Processing webhook", booking_id=booking_id, status=status)
         try:
             payment = await self.db.payments.get_one(booking_id=booking_id)
+            assert payment, "Payment not found"
         except ObjectNotFoundException:
             raise PaymentNotFoundException
 
-        status_str = str(status.value if hasattr(status, 'value') else status)
+        status_str = str(getattr(status, 'value', status))
 
         try:
             if status_str == "succeeded":
@@ -133,7 +135,7 @@ class PaymentsService(BaseService):
                 try:
                     booking = await self.db.bookings.get_booking_with_passengers(booking_id=payment.booking_id)
                     booking.status = BookingStatus.CONFIRMED
-                    send_email_after_payment.delay(payment.booking_id)
+                    send_email_after_payment.delay(payment.booking_id) # type: ignore
                     logger.info(
                         "Payment and booking confirmed via webhook",
                         booking_id=payment.booking_id
@@ -165,14 +167,24 @@ class PaymentsService(BaseService):
             notification_object = WebhookNotificationFactory().create(event_data)
             payment_object = notification_object.object
 
-            booking_id = payment_object.metadata.get("booking_id")
+            if not payment_object or not payment_object.metadata:
+                return {"status": "error", "message": "Invalid payment object"}
+
+            booking_id_raw = payment_object.metadata.get("booking_id") if payment_object.metadata else None
+
+            if booking_id_raw is None:
+                logger.error("Webhook received without booking_id in metadata")
+                return {"status": "error", "message": "No booking_id"}
+
+
+
         except Exception as e:
             logger.error(f"Webhook parsing error: {e}")
             return {"status": "error", "message": "Invalid data"}
 
         await self.handle_webhook(
-            status=payment_object.status,
-            booking_id = int(booking_id) if booking_id else None
+            status=str(payment_object.status),
+            booking_id = int(booking_id_raw)
         )
         logger.info("Webhook handled successfully", transaction_id=payment_object.id)
         return {"status": "ok"}

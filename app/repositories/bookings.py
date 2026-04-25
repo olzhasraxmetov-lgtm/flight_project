@@ -37,7 +37,7 @@ class BookingsRepository(BaseRepository):
             raise ObjectNotFoundException
         return full_booking
 
-    async def get_booking_with_passengers(self, booking_id: int):
+    async def get_booking_with_passengers(self, booking_id: int, user_id: int | None = None):
         query = (
             select(self.model)
             .where(self.model.id == booking_id)
@@ -46,6 +46,10 @@ class BookingsRepository(BaseRepository):
                 selectinload(self.model.passengers).joinedload(PassengersORM.flight_instance)
             )
         )
+
+        if user_id is not None:
+            query = query.where(self.model.user_id == user_id)
+
         result = await self.session.execute(query)
         full_booking = result.unique().scalar_one_or_none()
         if not full_booking:

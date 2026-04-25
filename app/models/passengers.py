@@ -1,8 +1,13 @@
+import typing
 from decimal import Decimal
 
 from app.core.database import Base
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from sqlalchemy import String, ForeignKey, Numeric
+
+if typing.TYPE_CHECKING:
+    from app.models.bookings import BookingsORM
+    from app.models.flight_instances import FlightInstancesORM
 
 class PassengersORM(Base):
     __tablename__ = "passengers"

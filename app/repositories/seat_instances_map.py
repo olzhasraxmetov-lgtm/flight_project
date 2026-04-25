@@ -33,7 +33,7 @@ class SeatInstancesMapRepository(BaseRepository):
         await self.session.execute(query)
 
 
-    async def get_ordered_seats_map(self, flight_instance_id: int):
+    async def get_ordered_seats_map(self, flight_instance_id: int, map_res: bool = True):
         query = (
             select(self.model)
             .where(self.model.flight_instance_id == flight_instance_id)
@@ -41,4 +41,4 @@ class SeatInstancesMapRepository(BaseRepository):
                       self.model.seat_letter)
         )
         result = await self.session.execute(query)
-        return [self.mapper.map_to_domain_entity(model) for model in result.scalars().all()]
+        return [self._map(model, map_res) for model in result.scalars().all()]

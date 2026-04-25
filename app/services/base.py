@@ -7,13 +7,13 @@ from app.exceptions.base import AppBaseException
 from loguru import logger
 
 class BaseService:
-    db: DBManager | None
+    db: DBManager
 
-    def __init__(self, db: DBManager | None = None) -> None:
+    def __init__(self, db: DBManager) -> None:
         self.db = db
 
 
-    async def check_if_entity_exists(self, repo, entity_id: id, error_exception: type[AppBaseException]):
+    async def check_if_entity_exists(self, repo, entity_id: int, error_exception: type[AppBaseException]):
         """
             Универсальный метод проверки существования сущности.
             :param repo: Репозиторий (например, self.db.airports)

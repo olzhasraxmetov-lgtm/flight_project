@@ -6,7 +6,7 @@ class BaseAppHTTPException(HTTPException):
     detail = "Internal Server Error"
     log_level = "ERROR"
 
-    def __init__(self, detail: str = None, log_message: str = None, log_level: str = None, **kwargs):
+    def __init__(self, detail: str | None = None, log_message: str | None = None, log_level: str | None = None, **kwargs):
         super().__init__(status_code=self.status_code, detail=detail or self.detail)
         self.detail = detail or self.detail
         self.log_message = log_message or self.detail

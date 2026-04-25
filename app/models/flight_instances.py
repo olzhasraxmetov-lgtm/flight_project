@@ -8,6 +8,8 @@ from typing import TYPE_CHECKING
 from app.helpers.flight_status import FlightStatus
 if TYPE_CHECKING:
     from app.models.seat_templates import SeamTemplatesORM
+    from app.models.airports import AirportsORM
+    from app.models.passengers import PassengersORM
 
 class FlightInstancesORM(Base):
     __tablename__ = 'flight_instances'

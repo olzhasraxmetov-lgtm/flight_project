@@ -37,6 +37,9 @@ class IncorrectPasswordException(AppBaseException):
 class AirlineNotFoundException(ObjectNotFoundException):
     detail = 'Авиакомпания не найдена'
 
+class UserNotFoundException(ObjectNotFoundException):
+    detail = 'Пользователь не найдена'
+
 class AirportNotFoundException(ObjectNotFoundException):
     detail = 'Аэропорт не найден'
 
@@ -72,3 +75,9 @@ class FlightNotAvailableForBookingException(AppBaseException):
 class SeatsNotAvailableException(AppBaseException):
     status_code = 409
     detail = "Место уже занято или недоступно"
+
+class EntityCreationException(AppBaseException):
+    status_code = 500
+
+class PaymentCreationException(EntityCreationException):
+    detail = "Произошла внутренняя ошибка при создании платежа"

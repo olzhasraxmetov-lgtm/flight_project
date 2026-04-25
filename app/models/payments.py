@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 from decimal import Decimal
 
 from app.core.database import Base
