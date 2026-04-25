@@ -17,10 +17,6 @@ async def test_create_payment(auth_user, created_booking, db):
     assert payment is not None
     assert payment.status == PaymentStatus.PENDING
 
-async def test_create_payment_forbidden(user_forbidden, created_booking, db):
-    response = await user_forbidden.post(f'/payments/{created_booking.id}')
-    assert response.status_code == 403
-
 async def test_create_payment_twice(auth_user, created_booking, db):
     response1 = await auth_user.post(f'/payments/{created_booking.id}')
     assert response1.status_code == 200

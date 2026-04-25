@@ -15,7 +15,7 @@ async def test_create_booking(db, registered_user, created_booking):
 
 
 async def test_get_booking_by_id(booking_service, registered_user, created_booking):
-    booking = await booking_service.get_booking(created_booking.id)
+    booking = await booking_service.get_booking(created_booking.id, user_id=registered_user.id)
     assert booking is not None
     assert booking.booking_reference == created_booking.booking_reference
     assert booking.id == created_booking.id
@@ -26,11 +26,11 @@ async def test_get_my_bookings(booking_service, registered_user, created_booking
     assert len(bookings) == 1
 
 async def test_delete_booking_fully(booking_service, registered_user, created_booking):
-    result = await booking_service.delete_booking_fully(created_booking.id)
+    result = await booking_service.delete_booking_fully(created_booking.id, user_id=registered_user.id)
     assert result['detail'] == "Бронирование успешно удалено"
 
     with pytest.raises(BookingNotFoundException):
-        await booking_service.get_booking(created_booking.id)
+        await booking_service.get_booking(created_booking.id, user_id=registered_user.id)
 
 async def test_delete_passenger_in_booking(booking_service, registered_user, created_booking):
     old_total_price = created_booking.total_price
@@ -47,7 +47,7 @@ async def test_delete_passenger_in_booking(booking_service, registered_user, cre
 
 async def test_forbidden_delete_passenger(booking_service, simple_user_forbidden, created_booking):
     passenger_id = created_booking.passengers[0].id
-    with pytest.raises(ForbiddenBookingException):
+    with pytest.raises(BookingNotFoundException):
         await booking_service.delete_passenger_in_booking(
             passenger_id=passenger_id,
             booking_id=created_booking.id,

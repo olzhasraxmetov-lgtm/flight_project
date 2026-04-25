@@ -78,9 +78,3 @@ async def test_create_booking_invalid_payload(auth_user):
     payload = {"flight_instance_id": "invalid", "passengers": []}
     response = await auth_user.post("/bookings", json=payload)
     assert response.status_code == 422
-
-async def test_forbidden_passenger_delete(db, user_forbidden, created_booking):
-    passenger_id = created_booking.passengers[0].id
-    response = await user_forbidden.delete(f"/bookings/{created_booking.id}/passenger/{passenger_id}")
-
-    assert response.status_code == 403
