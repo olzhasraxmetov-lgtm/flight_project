@@ -35,14 +35,7 @@ async def login_user(
                     "email": "olzhas@example.com",
                     "password": "olzhas123",
                 },
-            },
-            "2": {
-                "summary": "Админ",
-                "value": {
-                    "email": "admin@example.com",
-                    "password": "admin123",
-                },
-            },
+            }
         }
     ),
 ):

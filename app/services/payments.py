@@ -14,6 +14,7 @@ from app.services.base import BaseService
 from yookassa import Configuration, Payment
 from yookassa.domain.notification import WebhookNotificationFactory
 from app.helpers.payment_status import PaymentStatus
+from app.core.config import settings
 
 class PaymentsService(BaseService):
     def __init__(self, db: DBDep, shop_id: str, secret_key: str):
@@ -35,7 +36,7 @@ class PaymentsService(BaseService):
             },
             "confirmation": {
                 "type": "redirect",
-                "return_url": f'https://learnedly-unportioned-courtney.ngrok-free.dev/payments/success?payment_id={booking_id}',
+                "return_url": f'{settings.BASE_URL}/payments/success?payment_id={booking_id}',
             },
             "capture": True,
             "description": description,
